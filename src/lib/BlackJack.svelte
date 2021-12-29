@@ -1,4 +1,6 @@
 <script lang="ts">
+  // TODO bug in double down doesn't check if you bust
+  
   import { onMount } from 'svelte'
   import { fly, slide } from 'svelte/transition'
   import { tweened } from 'svelte/motion'
@@ -500,6 +502,10 @@
 
   :disabled {
     pointer-events: none;
+  }
+
+  .title {
+    margin-top: 20px;
   }
 
   .subtitle {

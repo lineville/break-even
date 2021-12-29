@@ -6,14 +6,11 @@
 
 <main>
   <Navbar />
-  <br />
+  <div style="margin-top: 40px;"></div>
   <BlackJack />
 </main>
 
 <style>
-  br {
-    padding-top: 1rem;
-  }
   
   main {
     text-align: center;

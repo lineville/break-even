@@ -12,6 +12,8 @@
   .navbar {
     opacity: 90%;
   }
+
+  
 </style>
 
 <nav class="navbar is-fixed-top is-dark" role="navigation" aria-label="main navigation">
