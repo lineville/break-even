@@ -6,10 +6,15 @@
 
 <main>
   <Navbar />
- <BlackJack />
+  <br />
+  <BlackJack />
 </main>
 
 <style>
+  br {
+    padding-top: 1rem;
+  }
+  
   main {
     text-align: center;
     padding: 1em;

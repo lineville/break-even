@@ -10,7 +10,6 @@
 <div>
   {#each cards as card, idx (card + idx)}
     <li
-      key={card + idx}
       in:fly={{ x: (idx === 0 ? -1 : 1) * 2000, duration: 500, delay: 300 }}
       out:fly={{ x: -2000, duration: 800 }}
       on:outroend={() => dispatch("gone", { card: card })}
