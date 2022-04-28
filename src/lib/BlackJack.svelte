@@ -7,6 +7,7 @@
   import { cubicOut } from "svelte/easing";
   import CardList from "./CardList.svelte";
   import { decideMove, computeScore, cardCount } from "../utils/BasicStrategy";
+  import CollapsibleSection from "./CollapsibleSection.svelte";
 
   const localBucket = window.localStorage;
 
@@ -229,9 +230,6 @@
 
   const toggleHint = (): void => {
     hintEnabled = !hintEnabled;
-    if (hintEnabled) {
-      hideInfoMessage = false;
-    }
   };
 
   const handleInsurance = (): void => {
@@ -513,8 +511,6 @@
   let hintColor = "is-info";
   let handsPlayed = 1;
   let correctDecisions = 1;
-  let hideInfoMessage = false;
-  let hideInfoTip = false;
   let insuranceBet = Math.floor(bet / 2);
   let deck = shuffle(newDeck());
   let dealerCards: Array<Card> = [drawCard(), drawCard()];
@@ -886,21 +882,30 @@
 
       <div class="field is-horizontal">
         <div>
-          <span
-            class={`tag is-large ${balance >= 0 ? "is-success" : "is-danger"}`}
-            >Balance: $ {balance}</span
-          >
-
-          {#if lockedIn && userWon}
+          <div>
             <span
-              class="icon is-small"
-              in:fly={{ y: -1000, duration: 500 }}
-              out:fly={{ y: -1000, duration: 500, delay: 800 }}
+              class={`tag is-large ${
+                balance >= 0 ? "is-success" : "is-danger"
+              }`}>Balance: $ {balance}</span
             >
-              <i class="fas fa-coins" />
-            </span>
-          {/if}
 
+            {#if lockedIn && userWon}
+              <span
+                class="icon is-small"
+                in:fly={{ y: -1000, duration: 500 }}
+                out:fly={{ y: -1000, duration: 500, delay: 800 }}
+              >
+                <i class="fas fa-coins" />
+              </span>
+            {/if}
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel w extra -->
+      <CollapsibleSection headerText="Advanced">
+        <br />
+        <div class="field is-horizontal">
           <button
             class="button is-primary has-tooltip-multiline"
             id="hint"
@@ -914,74 +919,39 @@
               />
             </span>
           </button>
-
+          
           {#if hintEnabled}
-            <span
-              class={`tag ${hintColor} is-light is-large subtitle`}
-              transition:fly={{ x: 2000, duration: 500 }}
-            >
-              {hint}
-            </span>
-          {/if}
-        </div>
-      </div>
-
-      <div class="field is-horizontal">
-        <label for="correctPct">Basic Strategy Correctness</label>
-        <progress
-          id="correctPct"
-          class="progress is-primary"
-          value={Math.floor((correctDecisions / handsPlayed) * 100)}
-          max="100"
-        />
-        <span>{Math.floor((correctDecisions / handsPlayed) * 100)}%</span>
-      </div>
-
-      <div class="field is-horizontal">
-        <span
-          class={`tag is-light is-medium ${
-            deckCount < 0 ? "is-danger" : deckCount > 0 ? "is-success" : ""
-          }`}
-        >
-          <p class="subtitle">Count: {deckCount}</p>
-        </span>
-        {#if hintEnabled}
-          {#if !hideInfoMessage}
-            <span
-              class={`tag is-light is-medium`}
-              id="infoTag"
-              transition:fly={{ x: 2000, duration: 500 }}
-            >
-              Don's hints are purely based on basic strategy he can't see any of
-              the cards in the deck!
-              <button
-                class="delete"
-                on:click={() => {
-                  hideInfoMessage = true;
-                }}
-              />
-            </span>
-          {/if}
-        {/if}
-      </div>
-      <div class="field is-horizontal">
-        {#if !hideInfoTip}
           <span
-            class={`tag is-info is-light is-medium`}
-            id="infoTag"
-            transition:fly={{ x: -2000, duration: 500 }}
+          class={`tag ${hintColor} is-light is-large subtitle`}
+          transition:fly={{ x: 2000, duration: 500 }}
           >
-            Tip: Use the arrow keys or WASD as an alternative to pressing the
-            buttons (use the arrow icons on the buttons as a legend)
-            <button
-              class="delete"
-              on:click={() => {
-                hideInfoTip = true;
-              }}
-            />
-          </span>
+          {hint}
+        </span>
         {/if}
-      </div>
+        </div>
+
+        <div class="field is-horizontal">
+          <label for="correctPct">Correctness</label>
+          <progress
+            id="correctPct"
+            class="progress is-primary"
+            value={Math.floor((correctDecisions / handsPlayed) * 100)}
+            max="100"
+          />
+          <span>{Math.floor((correctDecisions / handsPlayed) * 100)}%</span>
+        </div>
+
+        <div class="field is-horizontal">
+          <span
+            class={`tag is-light is-medium ${
+              deckCount < 0 ? "is-danger" : deckCount > 0 ? "is-success" : ""
+            }`}
+          >
+            <p class="subtitle">Card Count: {deckCount}</p>
+          </span>
+        </div>
+      </CollapsibleSection>
+      <!-- end extra panel -->
     </div>
   </div>
 
@@ -1083,6 +1053,7 @@
   }
 
   #controlBar {
-    margin-left: 15vw;
+    margin-left: 25vw;
+    margin-right: 25vw;
   }
 </style>
