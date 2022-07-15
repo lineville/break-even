@@ -1,5 +1,4 @@
 <script lang="ts">
-  // TODO bug in double down doesn't check if you bust
 
   import { onMount } from "svelte";
   import { fly, slide } from "svelte/transition";
@@ -92,7 +91,7 @@
         : handleSplitBust
       : handleBust;
     hitFunc(hand, bustFunc, "User");
-    if (!isBusted(hand)) {
+    if (!isBusted(userCards)) {
       stayFunction();
     }
     bet /= 2; // Reset the bet
