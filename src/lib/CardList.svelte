@@ -7,7 +7,7 @@
   const dispatch = createEventDispatcher();
 </script>
 
-<div>
+<div style="display: inline-block;">
   {#each cards as card, idx (card + idx)}
     <li
       in:fly={{ x: (idx === 0 ? -1 : 1) * 2000, duration: 500, delay: 300 }}

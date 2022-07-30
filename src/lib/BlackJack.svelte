@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import { onMount } from "svelte";
   import { fly, slide } from "svelte/transition";
   import { tweened } from "svelte/motion";
@@ -268,11 +267,11 @@
   const newDeck = (): Array<Card> => {
     let result = new Array<Card>();
     const suites: Array<Suite> = ["❤️", "♦", "♣️", "♠️"];
-    suites.forEach((suite) => {
-      for (let i = 2; i <= 14; i++) {
+    for (let i = 2; i <= 14; i++) {
+      suites.forEach((suite) => {
         result.push(indexToCard(i, suite));
-      }
-    });
+      });
+    }
 
     return result;
   };
@@ -494,6 +493,35 @@
     easing: cubicOut,
   });
 
+  const newGameState = () => {
+    balance = 100;
+    bet = 10;
+    deckCount = 0;
+    peekDealer = false;
+    lockedIn = false;
+    split = false;
+    hintEnabled = false;
+    userWon = false;
+    push = false;
+    leftHandDone = false;
+    rightHandDone = false;
+    hintColor = "is-info";
+    handsPlayed = 1;
+    correctDecisions = 1;
+    insuranceBet = Math.floor(bet / 2);
+    deck = shuffle(newDeck());
+    dealerCards = [drawCard(), drawCard()];
+    userCards = [drawCard(), drawCard()];
+    insuranceOpen =
+      dealerCards[0].name === "Ace" && computeScore(userCards) !== 21;
+    canSplit = userCards[0].name === userCards[1].name;
+    leftHand = [];
+    rightHand = [];
+    hint = donsHint(userCards, dealerCards[0]);
+    wonInsurance = false;
+    betOnInsurance = false;
+  };
+
   // ----------- State -----------
 
   let balance = 100;
@@ -525,11 +553,11 @@
 
   // Load in balance from localStorage on component mounting
   onMount(() => {
-    const storageValue = localBucket.getItem("Balance");
-    if (storageValue === null) {
+    const storedBalance = localBucket.getItem("Balance");
+    if (storedBalance === null) {
       localBucket.setItem("Balance", balance.toString());
     } else {
-      balance = parseInt(storageValue || "");
+      balance = parseInt(storedBalance || "");
     }
   });
 </script>
@@ -565,7 +593,7 @@
     {#if split}
       <ul>
         <CardList cards={leftHand.map((c) => cardToImage(c))} />
-        <span style="display:inline-block; width: 200px;" />
+        <span style="display:inline-block; width: 100px;" />
         <CardList cards={rightHand.map((c) => cardToImage(c))} />
       </ul>
     {:else}
@@ -697,115 +725,125 @@
         >
           <div>
             {#if split}
-              <button
-                class="button is-danger is-outlined"
-                on:click={() => handleStay(leftHand, stayLeft)}
-                disabled={leftHandDone || isBusted(leftHand)}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-left" />
-                </span>
-                <span>Stay 1</span>
-                <span class="icon is-small">
-                  <i class="fas fa-hand-paper" />
-                </span>
-              </button>
-              <button
-                class="button is-success is-outlined"
-                on:click={() =>
-                  handleDoubleDown(
-                    leftHand,
-                    () => hit(leftHand, handleSplitBust, "Left"),
-                    stayLeft,
-                    "Left"
-                  )}
-                disabled={leftHandDone || leftHand.length > 2}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-down" />
-                </span>
-                <span>Double 1</span>
-                <span class="icon is-small">
-                  <i class="fas fa-coins" />
-                </span>
-              </button>
-              <button
-                class="button is-primary is-outlined"
-                on:click={() =>
-                  handleHit(
-                    leftHand,
-                    () => hit(leftHand, handleSplitBust, "Left"),
-                    "Left"
-                  )}
-                disabled={leftHandDone || isBusted(leftHand)}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-hand-holding-medical" />
-                </span>
-                <span>Hit 1</span>
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-right" />
-                </span>
-              </button>
+              <div class="split-controls">
+                <button
+                  class="button is-danger is-outlined"
+                  on:click={() => handleStay(leftHand, stayLeft)}
+                  disabled={leftHandDone || isBusted(leftHand)}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-left" />
+                  </span>
+                  <span>Stay 1</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-paper" />
+                  </span>
+                </button>
 
-              <button
-                class="button is-danger is-outlined"
-                on:click={() => handleStay(rightHand, stayRight)}
-                disabled={!(leftHandDone || isBusted(leftHand)) ||
-                  rightHandDone ||
-                  isBusted(rightHand)}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-left" />
-                </span>
-                <span>Stay 2</span>
-                <span class="icon is-small">
-                  <i class="fas fa-hand-paper" />
-                </span>
-              </button>
-              <button
-                class="button is-success is-outlined"
-                on:click={() =>
-                  handleDoubleDown(
-                    rightHand,
-                    () => hit(rightHand, handleSplitBust, "Right"),
-                    stayRight,
-                    "Right"
-                  )}
-                disabled={!leftHandDone ||
-                  rightHand.length > 2 ||
-                  rightHandDone}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-down" />
-                </span>
-                <span>Double 2</span>
-                <span class="icon is-small">
-                  <i class="fas fa-coins" />
-                </span>
-              </button>
-              <button
-                class="button is-primary is-outlined"
-                on:click={() =>
-                  handleHit(
-                    rightHand,
-                    () => hit(rightHand, handleSplitBust, "Right"),
-                    "Right"
-                  )}
-                disabled={!(
-                  leftHandDone ||
-                  isBusted(leftHand) ||
-                  isBusted(rightHand)
-                ) || rightHandDone}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-hand-holding-medical" />
-                </span>
-                <span>Hit 2</span>
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-right" />
-                </span>
-              </button>
+                <button
+                  class="button is-success is-outlined"
+                  on:click={() =>
+                    handleDoubleDown(
+                      leftHand,
+                      () => hit(leftHand, handleSplitBust, "Left"),
+                      stayLeft,
+                      "Left"
+                    )}
+                  disabled={leftHandDone || leftHand.length > 2}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-down" />
+                  </span>
+                  <span>Double 1</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-coins" />
+                  </span>
+                </button>
+
+                <button
+                  class="button is-primary is-outlined"
+                  on:click={() =>
+                    handleHit(
+                      leftHand,
+                      () => hit(leftHand, handleSplitBust, "Left"),
+                      "Left"
+                    )}
+                  disabled={leftHandDone || isBusted(leftHand)}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-holding-medical" />
+                  </span>
+                  <span>Hit 1</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-right" />
+                  </span>
+                </button>
+              </div>
+
+              <hr />
+
+              <div class="split-controls">
+                <button
+                  class="button is-danger is-outlined"
+                  on:click={() => handleStay(rightHand, stayRight)}
+                  disabled={!(leftHandDone || isBusted(leftHand)) ||
+                    rightHandDone ||
+                    isBusted(rightHand)}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-left" />
+                  </span>
+                  <span>Stay 2</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-paper" />
+                  </span>
+                </button>
+
+                <button
+                  class="button is-success is-outlined"
+                  on:click={() =>
+                    handleDoubleDown(
+                      rightHand,
+                      () => hit(rightHand, handleSplitBust, "Right"),
+                      stayRight,
+                      "Right"
+                    )}
+                  disabled={!leftHandDone ||
+                    rightHand.length > 2 ||
+                    rightHandDone}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-down" />
+                  </span>
+                  <span>Double 2</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-coins" />
+                  </span>
+                </button>
+
+                <button
+                  class="button is-primary is-outlined"
+                  on:click={() =>
+                    handleHit(
+                      rightHand,
+                      () => hit(rightHand, handleSplitBust, "Right"),
+                      "Right"
+                    )}
+                  disabled={!(
+                    leftHandDone ||
+                    isBusted(leftHand) ||
+                    isBusted(rightHand)
+                  ) || rightHandDone}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-holding-medical" />
+                  </span>
+                  <span>Hit 2</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-right" />
+                  </span>
+                </button>
+              </div>
             {:else}
               <button
                 class="button is-danger is-outlined"
@@ -918,15 +956,15 @@
               />
             </span>
           </button>
-          
+
           {#if hintEnabled}
-          <span
-          class={`tag ${hintColor} is-light is-large subtitle`}
-          transition:fly={{ x: 2000, duration: 500 }}
-          >
-          {hint}
-        </span>
-        {/if}
+            <span
+              class={`tag ${hintColor} is-light is-large subtitle`}
+              transition:fly={{ x: 2000, duration: 500 }}
+            >
+              {hint}
+            </span>
+          {/if}
         </div>
 
         <div class="field is-horizontal">
@@ -948,6 +986,20 @@
           >
             <p class="subtitle">Card Count: {deckCount}</p>
           </span>
+        </div>
+
+        <div class="field is-horizontal">
+          <button
+            class="button is-danger has-tooltip-multiline"
+            id="reset"
+            on:click={newGameState}
+            data-tooltip="Reset game"
+          >
+            <span>{"Reset"}</span>
+            <span class="icon is-small">
+              <i class="fas fa-retweet" />
+            </span>
+          </button>
         </div>
       </CollapsibleSection>
       <!-- end extra panel -->
@@ -1054,5 +1106,11 @@
   #controlBar {
     margin-left: 25vw;
     margin-right: 25vw;
+  }
+
+  .split-controls {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 </style>
