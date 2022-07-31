@@ -84,10 +84,8 @@
 
     let bustFunc = split
       ? leftHandDone
-        ? () => {
-            leftHandDone = true;
-          }
-        : handleSplitBust
+        ? handleLeftHandBust
+        : handleRightHandBust
       : handleBust;
     hitFunc(hand, bustFunc, "User");
     if (!isBusted(userCards)) {
@@ -361,7 +359,11 @@
     push = false;
   };
 
-  const handleSplitBust = (): void => {
+  const handleLeftHandBust = (): void => {
+    leftHandDone = true;
+  };
+
+  const handleRightHandBust = (): void => {
     rightHandDone = true;
     lockedIn = true;
 
@@ -388,6 +390,9 @@
         break;
       case "ArrowLeft":
       case "a":
+        if (insuranceOpen) {
+          handleInsurance();
+        }
         if (!lockedIn && !split) {
           handleStay(userCards, stay);
         }
@@ -399,6 +404,9 @@
         break;
       case "ArrowRight":
       case "d":
+        if (insuranceOpen) {
+          denyInsurance();
+        }
         if (!lockedIn && !split) {
           handleHit(
             userCards,
@@ -409,13 +417,13 @@
         if (split && !leftHandDone) {
           handleHit(
             leftHand,
-            () => hit(leftHand, handleSplitBust, "Left"),
+            () => hit(leftHand, handleLeftHandBust, "Left"),
             "Left"
           );
         } else if (split && leftHandDone && !rightHandDone) {
           handleHit(
             rightHand,
-            () => hit(rightHand, handleSplitBust, "Right"),
+            () => hit(rightHand, handleRightHandBust, "Right"),
             "Right"
           );
         }
@@ -440,14 +448,14 @@
         if (split && !leftHandDone) {
           handleDoubleDown(
             leftHand,
-            () => hit(leftHand, handleSplitBust, "Left"),
+            () => hit(leftHand, handleLeftHandBust, "Left"),
             stayLeft,
             "Left"
           );
         } else if (split && leftHandDone && !rightHandDone) {
           handleDoubleDown(
             rightHand,
-            () => hit(rightHand, handleSplitBust, "Right"),
+            () => hit(rightHand, handleRightHandBust, "Right"),
             stayRight,
             "Right"
           );
@@ -674,6 +682,9 @@
               on:click={handleInsurance}
             >
               <span class="icon is-small">
+                <i class="fas fa-angle-double-left" />
+              </span>
+              <span class="icon is-small">
                 <i class="fas fa-check" />
               </span>
             </button>
@@ -684,6 +695,9 @@
             >
               <span class="icon is-small">
                 <i class="fas fa-times" />
+              </span>
+              <span class="icon is-small">
+                <i class="fas fa-angle-double-right" />
               </span>
             </button>
 
@@ -745,7 +759,7 @@
                   on:click={() =>
                     handleDoubleDown(
                       leftHand,
-                      () => hit(leftHand, handleSplitBust, "Left"),
+                      () => hit(leftHand, handleLeftHandBust, "Left"),
                       stayLeft,
                       "Left"
                     )}
@@ -765,7 +779,7 @@
                   on:click={() =>
                     handleHit(
                       leftHand,
-                      () => hit(leftHand, handleSplitBust, "Left"),
+                      () => hit(leftHand, handleLeftHandBust, "Left"),
                       "Left"
                     )}
                   disabled={leftHandDone || isBusted(leftHand)}
@@ -804,7 +818,7 @@
                   on:click={() =>
                     handleDoubleDown(
                       rightHand,
-                      () => hit(rightHand, handleSplitBust, "Right"),
+                      () => hit(rightHand, handleRightHandBust, "Right"),
                       stayRight,
                       "Right"
                     )}
@@ -826,7 +840,7 @@
                   on:click={() =>
                     handleHit(
                       rightHand,
-                      () => hit(rightHand, handleSplitBust, "Right"),
+                      () => hit(rightHand, handleRightHandBust, "Right"),
                       "Right"
                     )}
                   disabled={!(
