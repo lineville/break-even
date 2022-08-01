@@ -392,6 +392,7 @@
       case "a":
         if (insuranceOpen) {
           handleInsurance();
+          return;
         }
         if (!lockedIn && !split) {
           handleStay(userCards, stay);
@@ -406,6 +407,7 @@
       case "d":
         if (insuranceOpen) {
           denyInsurance();
+          return;
         }
         if (!lockedIn && !split) {
           handleHit(
