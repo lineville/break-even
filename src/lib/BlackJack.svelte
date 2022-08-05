@@ -471,7 +471,7 @@
   const donsHint = (userCards: Array<Card>, dealerUpCard: Card): string => {
     if (insuranceOpen) {
       hintColor = "is-info";
-      return "Most of the time insurance is a bad bet. Only go for it if you really think they've got 21";
+      return "As a matter of principal, I always suggest you reject insurance.";
     }
     let decision = decideMove(userCards, dealerUpCard, !split);
     switch (decision) {
