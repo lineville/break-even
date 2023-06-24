@@ -29,7 +29,7 @@
     <div class="navbar-end">
       <a
         class="navbar-item"
-        href="https://github.com/lineville/blackjack"
+        href="https://github.com/lineville/break-even"
         target="_blank"
         rel="noopener"
       >

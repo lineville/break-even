@@ -575,7 +575,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="columns is-mobile is-centered" id="blackJackContainer">
-  <div class="column is-11">
+  <div>
     <h1 class="title is-centered">BlackJack</h1>
 
     <h2 class="subtitle">
@@ -1020,47 +1020,6 @@
       </CollapsibleSection>
       <!-- end extra panel -->
     </div>
-  </div>
-
-  <!-- Deck to Peek from -->
-  <div class="column is-1">
-    {#if peekDealer}
-      <ul>
-        {#each deck.slice(0, 5).reverse() as card, idx (card)}
-          <li transition:slide>
-            <figure class="image is-64x64">
-              <img
-                src={`./images/${cardToImage(card)}.jpg`}
-                alt="playing card"
-              />
-            </figure>
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <ul>
-        {#each deck.slice(0, 5).reverse() as card, idx (card)}
-          <li transition:slide>
-            <figure class="image is-64x64">
-              <img src={`./images/Gray_back.jpg`} alt="playing card" />
-            </figure>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    <span class="tag is-primary is-light is-medium" id="upNext">
-      <span class="icon">
-        <i class="fas fa-arrow-up" />
-      </span>
-      <p class="subtitle">Up Next</p>
-    </span>
-
-    <button class="button is-dark is-outlined" on:click={handlePeek}>
-      <span>{peekDealer ? "Play Clean" : "Cheat"}</span>
-      <span class="icon is-small">
-        <i class={`fas fa-eye${peekDealer ? "-slash" : ""}`} />
-      </span>
-    </button>
   </div>
 </div>
 
