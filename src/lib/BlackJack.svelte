@@ -575,90 +575,9 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="columns is-mobile is-centered" id="blackJackContainer">
-  <div>
-    <h1 class="title is-centered">BlackJack</h1>
-
-    <h2 class="subtitle">
-      {peekDealer || lockedIn
-        ? `Dealer's Hand : ${computeScore(dealerCards)}`
-        : `Dealer's Hand`}
-    </h2>
-
-    <CardList
-      cards={dealerCards.map((c) => cardToImage(c))}
-      visible={peekDealer || lockedIn}
-    />
-    <hr />
-
-    {#if split}
-      <h2 class="subtitle is-primary">
-        Left Hand : {computeScore(leftHand)}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Right Hand : {computeScore(rightHand)}
-      </h2>
-    {:else}
-      <h2 class="subtitle">Your Hand : {computeScore(userCards)}</h2>
-    {/if}
-
-    {#if split}
-      <ul>
-        <CardList cards={leftHand.map((c) => cardToImage(c))} />
-        <span style="display:inline-block; width: 100px;" />
-        <CardList cards={rightHand.map((c) => cardToImage(c))} />
-      </ul>
-    {:else}
-      <CardList cards={userCards.map((c) => cardToImage(c))} />
-    {/if}
-
-    <hr />
-    <!-- Message Fly-In -->
-    {#if lockedIn}
-      <div
-        class={`notification is-narrow ${
-          userWon ? "is-success" : push ? "is-info" : "is-danger"
-        }`}
-        transition:fly={{ x: -1000, duration: 500, delay: 200 }}
-      >
-        <span
-          class={`tag is-large ${
-            userWon ? "is-success" : push ? "is-info" : "is-danger"
-          }`}
-          id="wonOrLost"
-        >
-          <strong
-            >{userWon ? "You Won!" : push ? "You Tied!" : "You Lost!"}</strong
-          >
-        </span>
-
-        <span class="control has-icons-left">
-          <input
-            class="input is-info"
-            type="number"
-            id="bet"
-            name="bet"
-            bind:value={bet}
-            disabled={!lockedIn}
-            min={1}
-            max={balance}
-          />
-
-          <span class="icon is-small is-left">
-            <i class="fa fa-dollar-sign" id="betDollarSign" />
-          </span>
-        </span>
-        <button class="button is-info is-outlined is-light" on:click={nextHand}>
-          <span>Next Hand</span>
-          <span class="icon is-small">
-            <i class="fas fa-angle-double-right" />
-          </span>
-        </button>
-
-        <span>(or press enter)</span>
-      </div>
-    {/if}
-
+  <div class="column is-2">
     <!-- Control Bar -->
-    <div class="is-centered box" id="controlBar">
+    <div class="is-centered box mt-6" id="controlBar">
       {#if insuranceOpen}
         <div class="field is-horizontal">
           <div transition:fly={{ x: -1000, duration: 500 }}>
@@ -1021,15 +940,79 @@
       <!-- end extra panel -->
     </div>
   </div>
+  <div class="column is-centered mt-6">
+    <div>
+      <CardList
+        cards={dealerCards.map((c) => cardToImage(c))}
+        visible={peekDealer || lockedIn}
+      />
+
+      <p class="mt-6 mb-6" />
+
+      {#if split}
+        <ul>
+          <CardList cards={leftHand.map((c) => cardToImage(c))} />
+          <span style="display:inline-block; width: 100px;" />
+          <CardList cards={rightHand.map((c) => cardToImage(c))} />
+        </ul>
+      {:else}
+        <CardList cards={userCards.map((c) => cardToImage(c))} />
+      {/if}
+    </div>
+
+    <p class="mt-6 mb-6" />
+
+    <!-- Message Fly-In -->
+    {#if lockedIn}
+      <div
+        class={`notification is-narrow ${
+          userWon ? "is-success" : push ? "is-info" : "is-danger"
+        }`}
+        transition:fly={{ x: -1000, duration: 500, delay: 200 }}
+      >
+        <span
+          class={`tag is-large ${
+            userWon ? "is-success" : push ? "is-info" : "is-danger"
+          }`}
+          id="wonOrLost"
+        >
+          <strong
+            >{userWon ? "You Won!" : push ? "You Tied!" : "You Lost!"}</strong
+          >
+        </span>
+
+        <span class="control has-icons-left">
+          <input
+            class="input is-info"
+            type="number"
+            id="bet"
+            name="bet"
+            bind:value={bet}
+            disabled={!lockedIn}
+            min={1}
+            max={balance}
+          />
+
+          <span class="icon is-small is-left">
+            <i class="fa fa-dollar-sign" id="betDollarSign" />
+          </span>
+        </span>
+        <button class="button is-info is-outlined is-light" on:click={nextHand}>
+          <span>Next Hand</span>
+          <span class="icon is-small">
+            <i class="fas fa-angle-double-right" />
+          </span>
+        </button>
+
+        <span>(or press enter)</span>
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
   button {
     margin: 5px 5px 5px 5px;
-  }
-
-  li {
-    margin-left: 15px;
   }
 
   hr {
@@ -1067,20 +1050,11 @@
     margin-top: 5px;
   }
 
-  #upNext {
-    margin-top: 80px;
-  }
-
   #correctPct {
     width: 300px;
     margin-left: 10px;
     margin-right: 10px;
     margin-top: 5px;
-  }
-
-  #controlBar {
-    margin-left: 25vw;
-    margin-right: 25vw;
   }
 
   .split-controls {

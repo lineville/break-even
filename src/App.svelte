@@ -22,7 +22,6 @@
 <main>
   <Navbar />
   <div style="margin-top: 40px;"></div>
-  <h3>{message}</h3>
   <BlackJack />
 </main>
 
