@@ -28,7 +28,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "breakeven.dev",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -55,10 +55,9 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "maximized": true,
         "resizable": true,
-        "title": "Break Even",
-        "width": 800
+        "title": "Break Even"
       }
     ]
   }
