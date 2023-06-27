@@ -5,7 +5,7 @@ description = "A simple blackjack game"
 authors = ["lineville"]
 license = "MIT"
 repository = "https://github.com/lineville/break-even"
-default-run = "app"
+default-run = "break-even"
 edition = "2021"
 rust-version = "1.60"
 
