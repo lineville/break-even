@@ -671,6 +671,9 @@
 
     <div class="is-centered box balance-bars">
       <label for="correctPct" id="balance-label">$ {balance}</label>
+      <span class="icon is-small" id="corner-refresh" on:click={newGameState}>
+        <i class="fas fa-rotate" />
+      </span>
 
       {#each progressBarValues as b}
         <progress
@@ -821,18 +824,6 @@
                     <i class="fas fa-chevron-right" />
                   </span>
                 </button>
-
-                <button
-                  class="button is-danger is-outlined column"
-                  id="reset"
-                  on:click={newGameState}
-                  data-tooltip="Reset game"
-                >
-                  <span>New Game</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-retweet" />
-                  </span>
-                </button>
               </div>
 
               <hr />
@@ -896,18 +887,6 @@
                   <span>Hit 2</span>
                   <span class="icon is-small">
                     <i class="fas fa-chevron-right" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-danger is-outlined column"
-                  id="reset"
-                  on:click={newGameState}
-                  data-tooltip="Reset game"
-                >
-                  <span>New Game</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-retweet" />
                   </span>
                 </button>
               </div>
@@ -980,18 +959,6 @@
                   <span>Hit</span>
                   <span class="icon is-small">
                     <i class="fas fa-chevron-right" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-danger is-outlined column"
-                  id="reset"
-                  on:click={newGameState}
-                  data-tooltip="Reset game"
-                >
-                  <span>New Game</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-retweet" />
                   </span>
                 </button>
               </div>
@@ -1073,5 +1040,10 @@
 
   #balance-label {
     font-size: x-large;
+  }
+
+  #corner-refresh {
+    float: right;
+    margin-top: 3px;
   }
 </style>
