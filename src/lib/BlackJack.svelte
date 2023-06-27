@@ -1,11 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { fly, slide } from "svelte/transition";
-  import { tweened } from "svelte/motion";
-  import { cubicOut } from "svelte/easing";
+  import { fly } from "svelte/transition";
   import CardList from "./CardList.svelte";
   import { decideMove, computeScore, cardCount } from "../utils/BasicStrategy";
-  import CollapsibleSection from "./CollapsibleSection.svelte";
+  import { hintEnabled } from "../stores";
 
   const localBucket = window.localStorage;
 
@@ -66,11 +64,13 @@
       userWon = true;
       push = false;
       balance += bet * 2;
+      progressBarValues = balances();
     } else if (computeScore(userCards) === computeScore(dealerCards)) {
       // Push
       userWon = false;
       push = true;
       balance += bet;
+      progressBarValues = balances();
     }
   };
 
@@ -100,6 +100,7 @@
     userCards = [];
     split = true;
     balance -= bet;
+    progressBarValues = balances();
     if (leftHand[0].name === "Ace") {
       leftHandDone = true;
       rightHandDone = true;
@@ -132,9 +133,11 @@
     ) {
       balance += bet * 2;
       leftWon = true;
+      progressBarValues = balances();
     } else if (computeScore(leftHand) === computeScore(dealerCards)) {
       balance += bet;
       leftPush = false;
+      progressBarValues = balances();
     }
 
     // * Check right hand
@@ -145,9 +148,11 @@
     ) {
       balance += bet * 2;
       rightWon = true;
+      progressBarValues = balances();
     } else if (computeScore(rightHand) === computeScore(dealerCards)) {
       balance += bet;
       rightPush = true;
+      progressBarValues = balances();
     }
 
     if (
@@ -194,12 +199,9 @@
     doubleDown(hand, () => hitFunc(hand, handleBust, who), stayFunc);
   };
 
-  const handlePeek = (): void => {
-    peekDealer = !peekDealer;
-  };
-
   const nextHand = (): void => {
     balance -= bet;
+    progressBarValues = balances();
     lockedIn = false;
     split = false;
     userWon = false;
@@ -224,10 +226,6 @@
     localBucket.setItem("Balance", balance.toString());
   };
 
-  const toggleHint = (): void => {
-    hintEnabled = !hintEnabled;
-  };
-
   const handleInsurance = (): void => {
     lockedIn = true;
     betOnInsurance = true;
@@ -239,6 +237,7 @@
     } else {
       wonInsurance = false;
       balance -= insuranceBet;
+      progressBarValues = balances();
       lockedIn = false;
       setTimeout(() => {
         insuranceOpen = false;
@@ -498,19 +497,15 @@
     handsPlayed += 1;
   };
 
-  const progress = tweened(0, {
-    duration: 400,
-    easing: cubicOut,
-  });
-
   const newGameState = () => {
     balance = 100;
+    progressBarValues = balances();
     bet = 10;
     deckCount = 0;
     peekDealer = false;
     lockedIn = false;
     split = false;
-    hintEnabled = false;
+    hintEnabled.set(false);
     userWon = false;
     push = false;
     leftHandDone = false;
@@ -532,6 +527,15 @@
     betOnInsurance = false;
   };
 
+  const balances = () => {
+    if (Math.abs(balance) <= 100) {
+      return [balance];
+    }
+    let result = new Array(Math.ceil(Math.abs(balance / 100))).fill(100, 1);
+    result[0] = Math.abs(balance) % 100;
+    return result;
+  };
+
   // ----------- State -----------
 
   let balance = 100;
@@ -540,7 +544,6 @@
   let peekDealer = false;
   let lockedIn = false;
   let split = false;
-  let hintEnabled = false;
   let userWon = false;
   let push = false;
   let leftHandDone = false;
@@ -561,6 +564,12 @@
   let wonInsurance = false;
   let betOnInsurance = false;
 
+  let progressBarValues = [balance];
+  let hintEnabledValue;
+
+  hintEnabled.subscribe((value) => {
+    hintEnabledValue = value;
+  });
   // Load in balance from localStorage on component mounting
   onMount(() => {
     const storedBalance = localBucket.getItem("Balance");
@@ -575,94 +584,115 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="columns is-mobile is-centered" id="blackJackContainer">
-  <div class="column is-11">
-    <h1 class="title is-centered">BlackJack</h1>
-
-    <h2 class="subtitle">
-      {peekDealer || lockedIn
-        ? `Dealer's Hand : ${computeScore(dealerCards)}`
-        : `Dealer's Hand`}
-    </h2>
-
-    <CardList
-      cards={dealerCards.map((c) => cardToImage(c))}
-      visible={peekDealer || lockedIn}
-    />
-    <hr />
-
-    {#if split}
-      <h2 class="subtitle is-primary">
-        Left Hand : {computeScore(leftHand)}
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Right Hand : {computeScore(rightHand)}
-      </h2>
-    {:else}
-      <h2 class="subtitle">Your Hand : {computeScore(userCards)}</h2>
-    {/if}
-
-    {#if split}
-      <ul>
-        <CardList cards={leftHand.map((c) => cardToImage(c))} />
-        <span style="display:inline-block; width: 100px;" />
-        <CardList cards={rightHand.map((c) => cardToImage(c))} />
-      </ul>
-    {:else}
-      <CardList cards={userCards.map((c) => cardToImage(c))} />
-    {/if}
-
-    <hr />
-    <!-- Message Fly-In -->
-    {#if lockedIn}
-      <div
-        class={`notification is-narrow ${
-          userWon ? "is-success" : push ? "is-info" : "is-danger"
-        }`}
-        transition:fly={{ x: -1000, duration: 500, delay: 200 }}
-      >
+  <!-- Main central section -->
+  <div class="column is-full">
+    <div class="is-centered">
+      {#if hintEnabledValue}
         <span
-          class={`tag is-large ${
+          class={`tag ${hintColor} is-light is-large subtitle`}
+          transition:fly={{ x: 2000, duration: 500 }}
+        >
+          {hint}
+        </span>
+      {/if}
+    </div>
+
+    <div class="is-centered" id="cards-section">
+      <div>
+        <CardList
+          cards={dealerCards.map((c) => cardToImage(c))}
+          visible={peekDealer || lockedIn}
+        />
+
+        <p class="mt-6 mb-6" />
+
+        {#if split}
+          <ul>
+            <CardList cards={leftHand.map((c) => cardToImage(c))} />
+            <span style="display:inline-block; width: 100px;" />
+            <CardList cards={rightHand.map((c) => cardToImage(c))} />
+          </ul>
+        {:else}
+          <CardList cards={userCards.map((c) => cardToImage(c))} />
+        {/if}
+      </div>
+
+      <p class="mt-6 mb-6" />
+
+      <!-- Message Fly-In -->
+      {#if lockedIn}
+        <div
+          class={`notification is-narrow box ${
             userWon ? "is-success" : push ? "is-info" : "is-danger"
           }`}
-          id="wonOrLost"
+          transition:fly={{ x: -1000, duration: 500, delay: 200 }}
         >
-          <strong
-            >{userWon ? "You Won!" : push ? "You Tied!" : "You Lost!"}</strong
+          <span
+            class={`tag is-large ${
+              userWon ? "is-success" : push ? "is-info" : "is-danger"
+            }`}
+            id="wonOrLost"
           >
-        </span>
-
-        <span class="control has-icons-left">
-          <input
-            class="input is-info"
-            type="number"
-            id="bet"
-            name="bet"
-            bind:value={bet}
-            disabled={!lockedIn}
-            min={1}
-            max={balance}
-          />
-
-          <span class="icon is-small is-left">
-            <i class="fa fa-dollar-sign" id="betDollarSign" />
+            <strong
+              >{userWon ? "You Won!" : push ? "You Tied!" : "You Lost!"}</strong
+            >
           </span>
-        </span>
-        <button class="button is-info is-outlined is-light" on:click={nextHand}>
-          <span>Next Hand</span>
-          <span class="icon is-small">
-            <i class="fas fa-angle-double-right" />
-          </span>
-        </button>
 
-        <span>(or press enter)</span>
-      </div>
-    {/if}
+          <span class="control has-icons-left">
+            <input
+              class="input is-info"
+              type="number"
+              id="bet"
+              name="bet"
+              bind:value={bet}
+              disabled={!lockedIn}
+              min={1}
+              max={balance}
+            />
+
+            <span class="icon is-small is-left">
+              <i class="fa fa-dollar-sign" id="betDollarSign" />
+            </span>
+          </span>
+          <button
+            class="button is-info is-outlined is-light"
+            on:click={nextHand}
+          >
+            <span>Next Hand</span>
+            <span class="icon is-small">
+              <i class="fas fa-angle-double-right" />
+            </span>
+          </button>
+
+          <span>(or press enter)</span>
+        </div>
+      {/if}
+    </div>
+
+    <div class="is-centered box balance-bars">
+      <label for="correctPct" id="balance-label">$ {balance}</label>
+      <span class="icon is-small" id="corner-refresh" on:click={newGameState}>
+        <i class="fas fa-rotate" />
+      </span>
+
+      {#each progressBarValues as b}
+        <progress
+          class={`progress is-narrow box ${
+            balance > 0 ? "is-primary" : "is-warning"
+          }`}
+          value={b}
+          max="100"
+        />
+      {/each}
+    </div>
 
     <!-- Control Bar -->
     <div class="is-centered box" id="controlBar">
       {#if insuranceOpen}
-        <div class="field is-horizontal">
+        <div class="field">
           <div transition:fly={{ x: -1000, duration: 500 }}>
-            <span class="tag is-large is-info">Insurance ?</span>
+            <h3>Insurance ?</h3>
+            <!-- <span class="tag is-large is-info">Insurance ?</span> -->
             <span class="control has-icons-left">
               <input
                 class="input is-info"
@@ -674,7 +704,7 @@
                 min={1}
               />
 
-              <span class="icon is-small is-left">
+              <span class="icon is-small is-left" id="insuranceDollarSign">
                 <i class="fa fa-dollar-sign" />
               </span>
             </span>
@@ -736,14 +766,14 @@
         </div>
       {:else}
         <div
-          class="field is-horizontal"
+          class="field"
           transition:fly={{ x: 2000, duration: 500, delay: 200 }}
         >
           <div>
             {#if split}
-              <div class="split-controls">
+              <div class="split-controls columns mb-2 mt-2">
                 <button
-                  class="button is-danger is-outlined"
+                  class="button is-danger is-outlined column"
                   on:click={() => handleStay(leftHand, stayLeft)}
                   disabled={leftHandDone || isBusted(leftHand)}
                 >
@@ -757,7 +787,7 @@
                 </button>
 
                 <button
-                  class="button is-success is-outlined"
+                  class="button is-success is-outlined column"
                   on:click={() =>
                     handleDoubleDown(
                       leftHand,
@@ -777,7 +807,7 @@
                 </button>
 
                 <button
-                  class="button is-primary is-outlined"
+                  class="button is-info is-outlined column"
                   on:click={() =>
                     handleHit(
                       leftHand,
@@ -798,9 +828,9 @@
 
               <hr />
 
-              <div class="split-controls">
+              <div class="split-controls columns mb-2 mt-2">
                 <button
-                  class="button is-danger is-outlined"
+                  class="button is-danger is-outlined column"
                   on:click={() => handleStay(rightHand, stayRight)}
                   disabled={!(leftHandDone || isBusted(leftHand)) ||
                     rightHandDone ||
@@ -816,7 +846,7 @@
                 </button>
 
                 <button
-                  class="button is-success is-outlined"
+                  class="button is-success is-outlined column"
                   on:click={() =>
                     handleDoubleDown(
                       rightHand,
@@ -838,7 +868,7 @@
                 </button>
 
                 <button
-                  class="button is-primary is-outlined"
+                  class="button is-info is-outlined column"
                   on:click={() =>
                     handleHit(
                       rightHand,
@@ -861,221 +891,96 @@
                 </button>
               </div>
             {:else}
-              <button
-                class="button is-danger is-outlined"
-                on:click={() => handleStay(userCards, stay)}
-                disabled={lockedIn}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-left" />
-                </span>
-                <span>Stay</span>
-                <span class="icon is-small">
-                  <i class="fas fa-hand-paper" />
-                </span>
-              </button>
+              <div class="columns mb-2 mt-2">
+                <button
+                  class="button is-danger is-outlined column"
+                  on:click={() => handleStay(userCards, stay)}
+                  disabled={lockedIn}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-left" />
+                  </span>
+                  <span>Stay</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-paper" />
+                  </span>
+                </button>
 
-              <button
-                class="button is-success is-outlined"
-                on:click={() =>
-                  handleDoubleDown(
-                    userCards,
-                    () => hit(userCards, handleBust, "User"),
-                    stay,
-                    "User"
-                  )}
-                disabled={lockedIn || userCards.length !== 2}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-down" />
-                </span>
-                <span>Double</span>
-                <span class="icon is-small">
-                  <i class="fas fa-coins" />
-                </span>
-              </button>
+                {#if canSplit && !split}
+                  <button
+                    class="button is-warning is-outlined column"
+                    id="splitButton"
+                    on:click={handleSplitHand}
+                    transition:fly={{ y: -1000, duration: 500 }}
+                  >
+                    <span class="icon is-small">
+                      <i class="fas fa-chevron-up" />
+                    </span>
+                    <span>Split</span>
+                    <span class="icon is-small">
+                      <i class="fas fa-expand-alt" />
+                    </span>
+                  </button>
+                {/if}
 
-              <button
-                class="button is-warning is-outlined"
-                id="splitButton"
-                on:click={handleSplitHand}
-                disabled={!canSplit || split}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-up" />
-                </span>
-                <span>Split</span>
-                <span class="icon is-small">
-                  <i class="fas fa-expand-alt" />
-                </span>
-              </button>
+                <button
+                  class="button is-success is-outlined column"
+                  on:click={() =>
+                    handleDoubleDown(
+                      userCards,
+                      () => hit(userCards, handleBust, "User"),
+                      stay,
+                      "User"
+                    )}
+                  disabled={lockedIn || userCards.length !== 2}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-down" />
+                  </span>
+                  <span>Double</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-coins" />
+                  </span>
+                </button>
 
-              <button
-                class="button is-primary is-outlined"
-                on:click={() =>
-                  handleHit(
-                    userCards,
-                    () => hit(userCards, handleBust, "User"),
-                    "User"
-                  )}
-                disabled={lockedIn}
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-hand-holding-medical" />
-                </span>
-                <span>Hit</span>
-                <span class="icon is-small">
-                  <i class="fas fa-chevron-right" />
-                </span>
-              </button>
+                <button
+                  class="button is-info is-outlined column"
+                  on:click={() =>
+                    handleHit(
+                      userCards,
+                      () => hit(userCards, handleBust, "User"),
+                      "User"
+                    )}
+                  disabled={lockedIn}
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-hand-holding-medical" />
+                  </span>
+                  <span>Hit</span>
+                  <span class="icon is-small">
+                    <i class="fas fa-chevron-right" />
+                  </span>
+                </button>
+              </div>
             {/if}
           </div>
         </div>
       {/if}
-
-      <div class="field is-horizontal">
-        <div>
-          <div>
-            <span
-              class={`tag is-large ${
-                balance >= 0 ? "is-success" : "is-danger"
-              }`}>Balance: $ {balance}</span
-            >
-
-            {#if lockedIn && userWon}
-              <span
-                class="icon is-small"
-                in:fly={{ y: -1000, duration: 500 }}
-                out:fly={{ y: -1000, duration: 500, delay: 800 }}
-              >
-                <i class="fas fa-coins" />
-              </span>
-            {/if}
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel w extra -->
-      <CollapsibleSection headerText="Advanced">
-        <br />
-        <div class="field is-horizontal">
-          <button
-            class="button is-primary has-tooltip-multiline"
-            id="hint"
-            on:click={toggleHint}
-            data-tooltip="Helpful hint"
-          >
-            <span>{hintEnabled ? "Fly Solo" : "Ask Don"}</span>
-            <span class="icon is-small">
-              <i
-                class={`fas fa-${hintEnabled ? "plane" : "question-circle"}`}
-              />
-            </span>
-          </button>
-
-          {#if hintEnabled}
-            <span
-              class={`tag ${hintColor} is-light is-large subtitle`}
-              transition:fly={{ x: 2000, duration: 500 }}
-            >
-              {hint}
-            </span>
-          {/if}
-        </div>
-
-        <div class="field is-horizontal">
-          <label for="correctPct">Correctness</label>
-          <progress
-            id="correctPct"
-            class="progress is-primary"
-            value={Math.floor((correctDecisions / handsPlayed) * 100)}
-            max="100"
-          />
-          <span>{Math.floor((correctDecisions / handsPlayed) * 100)}%</span>
-        </div>
-
-        <div class="field is-horizontal">
-          <span
-            class={`tag is-light is-medium ${
-              deckCount < 0 ? "is-danger" : deckCount > 0 ? "is-success" : ""
-            }`}
-          >
-            <p class="subtitle">Card Count: {deckCount}</p>
-          </span>
-        </div>
-
-        <div class="field is-horizontal">
-          <button
-            class="button is-danger has-tooltip-multiline"
-            id="reset"
-            on:click={newGameState}
-            data-tooltip="Reset game"
-          >
-            <span>{"Reset"}</span>
-            <span class="icon is-small">
-              <i class="fas fa-retweet" />
-            </span>
-          </button>
-        </div>
-      </CollapsibleSection>
-      <!-- end extra panel -->
     </div>
-  </div>
-
-  <!-- Deck to Peek from -->
-  <div class="column is-1">
-    {#if peekDealer}
-      <ul>
-        {#each deck.slice(0, 5).reverse() as card, idx (card)}
-          <li transition:slide>
-            <figure class="image is-64x64">
-              <img
-                src={`./images/${cardToImage(card)}.jpg`}
-                alt="playing card"
-              />
-            </figure>
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <ul>
-        {#each deck.slice(0, 5).reverse() as card, idx (card)}
-          <li transition:slide>
-            <figure class="image is-64x64">
-              <img src={`./images/Gray_back.jpg`} alt="playing card" />
-            </figure>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    <span class="tag is-primary is-light is-medium" id="upNext">
-      <span class="icon">
-        <i class="fas fa-arrow-up" />
-      </span>
-      <p class="subtitle">Up Next</p>
-    </span>
-
-    <button class="button is-dark is-outlined" on:click={handlePeek}>
-      <span>{peekDealer ? "Play Clean" : "Cheat"}</span>
-      <span class="icon is-small">
-        <i class={`fas fa-eye${peekDealer ? "-slash" : ""}`} />
-      </span>
-    </button>
   </div>
 </div>
 
 <style>
-  button {
-    margin: 5px 5px 5px 5px;
+  input {
+    min-height: 50px;
   }
-
-  li {
-    margin-left: 15px;
+  button {
+    min-height: 50px;
+    margin: 5px 5px 5px 5px;
   }
 
   hr {
     margin-top: 15px;
-    width: 85%;
   }
 
   :disabled {
@@ -1108,25 +1013,37 @@
     margin-top: 5px;
   }
 
-  #upNext {
-    margin-top: 80px;
+  #controlBar,
+  .balance-bars {
+    margin-left: 20vw;
+    margin-right: 20vw;
+    margin-top: 5vh;
+    margin-bottom: 5vh;
   }
 
-  #correctPct {
-    width: 300px;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-top: 5px;
+  #cards-section {
+    margin-top: 5vh;
   }
 
-  #controlBar {
-    margin-left: 25vw;
-    margin-right: 25vw;
+  .notification {
+    margin-left: 20vw;
+    margin-right: 20vw;
   }
 
-  .split-controls {
-    display: inline-block;
-    margin-left: 10px;
-    margin-right: 10px;
+  #betDollarSign {
+    margin-top: 8px;
+  }
+
+  #insuranceDollarSign {
+    margin-top: 18px;
+  }
+
+  #balance-label {
+    font-size: x-large;
+  }
+
+  #corner-refresh {
+    float: right;
+    margin-top: 3px;
   }
 </style>

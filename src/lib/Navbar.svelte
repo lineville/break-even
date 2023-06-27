@@ -1,5 +1,6 @@
 <script lang="ts">
   let mobileView = false;
+  import { hintEnabled } from "../stores";
 </script>
 
 <nav
@@ -15,9 +16,6 @@
       aria-label="menu"
       aria-expanded="false"
       data-target="navbarBasicExample"
-      on:click={() => {
-        mobileView = !mobileView;
-      }}
     >
       <span aria-hidden="true" />
       <span aria-hidden="true" />
@@ -26,10 +24,28 @@
   </div>
 
   <div id="navbarBasicExample" class="navbar-menu" class:is-active={mobileView}>
+    <div class="navbar-start">
+      <!-- svelte-ignore a11y-missing-attribute -->
+      <a
+        class="navbar-item"
+        rel="noopener"
+        on:click={() => {
+          hintEnabled.update((n) => !n);
+        }}
+      >
+        <span class="icon is-medium">
+          <i class="fas fa-question-circle" />
+        </span>
+        <span>{$hintEnabled ? "Hide Hint" : "Ask Don"}</span>
+      </a>
+    </div>
+  </div>
+
+  <div id="navbarBasicExample" class="navbar-menu" class:is-active={mobileView}>
     <div class="navbar-end">
       <a
         class="navbar-item"
-        href="https://github.com/lineville/blackjack"
+        href="https://github.com/lineville/break-even"
         target="_blank"
         rel="noopener"
       >
