@@ -37,9 +37,7 @@
     margin-left: 95vw;
   }
 
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
+  main {
+    max-width: none;
   }
 </style>
