@@ -2,8 +2,7 @@
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
   import CardList from "./CardList.svelte";
-  import { decideMove, computeScore, cardCount } from "../utils/BasicStrategy";
-  import { hintEnabled } from "../stores";
+  import { decideMove, computeScore, cardCount } from "./BasicStrategy";
 
   const localBucket = window.localStorage;
 
@@ -505,7 +504,7 @@
     peekDealer = false;
     lockedIn = false;
     split = false;
-    hintEnabled.set(false);
+    hintEnabled = false;
     userWon = false;
     push = false;
     leftHandDone = false;
@@ -536,6 +535,20 @@
     return result;
   };
 
+  const toggleShowHandTotal = () => {
+    showHandTotal = !showHandTotal;
+  };
+
+  const cardTotalColorTheme = (score: number): string => {
+    if (score > 21) {
+      return "is-danger";
+    } else if (score >= 16) {
+      return "is-warning";
+    } else {
+      return "is-info";
+    }
+  };
+
   // ----------- State -----------
 
   let balance = 100;
@@ -563,13 +576,11 @@
   let hint = donsHint(userCards, dealerCards[0]);
   let wonInsurance = false;
   let betOnInsurance = false;
+  let showHandTotal = false;
+  let hintEnabled = false;
 
   let progressBarValues = [balance];
-  let hintEnabledValue;
 
-  hintEnabled.subscribe((value) => {
-    hintEnabledValue = value;
-  });
   // Load in balance from localStorage on component mounting
   onMount(() => {
     const storedBalance = localBucket.getItem("Balance");
@@ -586,8 +597,9 @@
 <div class="columns is-mobile is-centered" id="blackJackContainer">
   <!-- Main central section -->
   <div class="column is-full">
+    <!-- Hint Fly-in -->
     <div class="is-centered">
-      {#if hintEnabledValue}
+      {#if hintEnabled}
         <span
           class={`tag ${hintColor} is-light is-large subtitle`}
           transition:fly={{ x: 2000, duration: 500 }}
@@ -597,8 +609,10 @@
       {/if}
     </div>
 
+    <!-- Dealer Cards + User Cards -->
     <div class="is-centered" id="cards-section">
       <div>
+        <!-- Dealer cards -->
         <CardList
           cards={dealerCards.map((c) => cardToImage(c))}
           visible={peekDealer || lockedIn}
@@ -606,20 +620,56 @@
 
         <p class="mt-6 mb-6" />
 
+        <!-- Player cards -->
         {#if split}
           <ul>
             <CardList cards={leftHand.map((c) => cardToImage(c))} />
             <span style="display:inline-block; width: 100px;" />
             <CardList cards={rightHand.map((c) => cardToImage(c))} />
+
+            {#if showHandTotal}
+              <div class="is-centered mt-6">
+                <span
+                  class={`tag is-large is-light ${cardTotalColorTheme(
+                    computeScore(leftHand)
+                  )}`}
+                  transition:fly={{ x: 2000, duration: 500 }}
+                >
+                  {computeScore(leftHand)}
+                </span>
+                <span style="display:inline-block; width: 270px;" />
+                <span
+                  class={`tag is-large is-light ${cardTotalColorTheme(
+                    computeScore(rightHand)
+                  )}`}
+                  transition:fly={{ x: 2000, duration: 500 }}
+                >
+                  {computeScore(rightHand)}
+                </span>
+              </div>
+            {/if}
           </ul>
         {:else}
           <CardList cards={userCards.map((c) => cardToImage(c))} />
+          {#if showHandTotal}
+            <div class="is-centered mt-6">
+              <span
+                class={`tag is-large is-light ${cardTotalColorTheme(
+                  computeScore(userCards)
+                )}`}
+                transition:fly={{ x: 2000, duration: 500 }}
+              >
+                {computeScore(userCards)}
+              </span>
+            </div>
+          {/if}
         {/if}
       </div>
 
+      <!-- Divider -->
       <p class="mt-6 mb-6" />
 
-      <!-- Message Fly-In -->
+      <!-- Notification Fly-In -->
       {#if lockedIn}
         <div
           class={`notification is-narrow box ${
@@ -669,10 +719,15 @@
       {/if}
     </div>
 
-    <div class="is-centered box balance-bars">
-      <label for="correctPct" id="balance-label">$ {balance}</label>
-      <span class="icon is-small" id="corner-refresh" on:click={newGameState}>
-        <i class="fas fa-rotate" />
+    <!-- Balance progress bars -->
+    <div class="is-centered box balance-bars is-dark">
+      <span class="mb-6" id="balance-label">$ {balance}</span>
+      <span
+        class="icon is-small js-modal-trigger"
+        data-target="settings-modal"
+        id="corner-refresh"
+      >
+        <i class="fas fa-gear" />
       </span>
 
       {#each progressBarValues as b}
@@ -687,12 +742,11 @@
     </div>
 
     <!-- Control Bar -->
-    <div class="is-centered box" id="controlBar">
+    <div class="is-centered box is-dark" id="controlBar">
       {#if insuranceOpen}
         <div class="field">
           <div transition:fly={{ x: -1000, duration: 500 }}>
             <h3>Insurance ?</h3>
-            <!-- <span class="tag is-large is-info">Insurance ?</span> -->
             <span class="control has-icons-left">
               <input
                 class="input is-info"
@@ -780,7 +834,7 @@
                   <span class="icon is-small">
                     <i class="fas fa-chevron-left" />
                   </span>
-                  <span>Stay 1</span>
+                  <span>Stay</span>
                   <span class="icon is-small">
                     <i class="fas fa-hand-paper" />
                   </span>
@@ -800,7 +854,7 @@
                   <span class="icon is-small">
                     <i class="fas fa-chevron-down" />
                   </span>
-                  <span>Double 1</span>
+                  <span>Double</span>
                   <span class="icon is-small">
                     <i class="fas fa-coins" />
                   </span>
@@ -819,16 +873,14 @@
                   <span class="icon is-small">
                     <i class="fas fa-hand-holding-medical" />
                   </span>
-                  <span>Hit 1</span>
+                  <span>Hit</span>
                   <span class="icon is-small">
                     <i class="fas fa-chevron-right" />
                   </span>
                 </button>
-              </div>
 
-              <hr />
+                <span class="ml-6 mr-6" />
 
-              <div class="split-controls columns mb-2 mt-2">
                 <button
                   class="button is-danger is-outlined column"
                   on:click={() => handleStay(rightHand, stayRight)}
@@ -839,7 +891,7 @@
                   <span class="icon is-small">
                     <i class="fas fa-chevron-left" />
                   </span>
-                  <span>Stay 2</span>
+                  <span>Stay</span>
                   <span class="icon is-small">
                     <i class="fas fa-hand-paper" />
                   </span>
@@ -861,7 +913,7 @@
                   <span class="icon is-small">
                     <i class="fas fa-chevron-down" />
                   </span>
-                  <span>Double 2</span>
+                  <span>Double</span>
                   <span class="icon is-small">
                     <i class="fas fa-coins" />
                   </span>
@@ -884,7 +936,7 @@
                   <span class="icon is-small">
                     <i class="fas fa-hand-holding-medical" />
                   </span>
-                  <span>Hit 2</span>
+                  <span>Hit</span>
                   <span class="icon is-small">
                     <i class="fas fa-chevron-right" />
                   </span>
@@ -970,17 +1022,59 @@
   </div>
 </div>
 
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal">
+  <div class="modal-background" />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Settings</p>
+      <button class="delete" aria-label="close" />
+    </header>
+    <section class="modal-card-body">
+      <button class="button is-info is-outlined" on:click={toggleShowHandTotal}>
+        {#if showHandTotal}
+          <span>Hide Hand Total</span>
+          <span class="icon is-small">
+            <i class="fas fa-eye-slash" />
+          </span>
+        {:else}
+          <span>Show Hand Total</span>
+          <span class="icon is-small">
+            <i class="fas fa-eye" />
+          </span>
+        {/if}
+      </button>
+
+      <button class="button is-danger is-outlined" on:click={newGameState}>
+        <span>New Game</span>
+        <span class="icon is-small">
+          <i class="fas fa-rotate" />
+        </span>
+      </button>
+
+      <button
+        class="button is-primary is-outlined"
+        on:click={() => {
+          hintEnabled = !hintEnabled;
+        }}
+      >
+        <span>{hintEnabled ? "Hide Hint" : "Ask Don"}</span>
+        <span class="icon is-medium">
+          <i class="fas fa-question-circle" />
+        </span>
+      </button>
+    </section>
+  </div>
+</div>
+
 <style>
   input {
     min-height: 50px;
   }
-  button {
+
+  .button {
     min-height: 50px;
     margin: 5px 5px 5px 5px;
-  }
-
-  hr {
-    margin-top: 15px;
   }
 
   :disabled {
@@ -1015,10 +1109,10 @@
 
   #controlBar,
   .balance-bars {
-    margin-left: 20vw;
-    margin-right: 20vw;
-    margin-top: 5vh;
-    margin-bottom: 5vh;
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 3vh;
+    margin-bottom: 3vh;
   }
 
   #cards-section {
@@ -1026,8 +1120,8 @@
   }
 
   .notification {
-    margin-left: 20vw;
-    margin-right: 20vw;
+    margin-left: 10vw;
+    margin-right: 10vw;
   }
 
   #betDollarSign {
@@ -1044,6 +1138,5 @@
 
   #corner-refresh {
     float: right;
-    margin-top: 3px;
   }
 </style>

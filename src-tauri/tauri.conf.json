@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "break-even",
+    "productName": "Break Even",
     "version": "0.1.2"
   },
   "tauri": {
