@@ -1038,7 +1038,7 @@
             <i class="fas fa-eye-slash" />
           </span>
         {:else}
-          <span>Show Hand Total</span>
+          <span>Show Total</span>
           <span class="icon is-small">
             <i class="fas fa-eye" />
           </span>
@@ -1063,7 +1063,21 @@
           <i class="fas fa-question-circle" />
         </span>
       </button>
+
+      <a
+        class="button is-outlined"
+        href="https://github.com/lineville/break-even"
+        target="_blank"
+        id="github-link"
+      >
+        <span>Source Code</span>
+        <span class="icon is-large">
+          <i class="fab fa-github" />
+        </span>
+      </a>
     </section>
+
+    <footer class="modal-card-foot" />
   </div>
 </div>
 

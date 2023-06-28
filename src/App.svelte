@@ -5,19 +5,6 @@
 
 <main>
   <BlackJack />
-  <footer>
-    <div>
-      <a
-        href="https://github.com/lineville/break-even"
-        target="_blank"
-        id="github-link"
-      >
-        <span class="icon is-large">
-          <i class="fab fa-github" />
-        </span>
-      </a>
-    </div>
-  </footer>
 </main>
 
 <style>
@@ -25,16 +12,6 @@
     text-align: center;
     padding: 1em;
     max-width: 240px;
-  }
-
-  footer {
-    position: fixed;
-    bottom: 0;
-  }
-
-  #github-link {
-    color: #333;
-    margin-left: 95vw;
   }
 
   main {
