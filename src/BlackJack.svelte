@@ -1033,7 +1033,7 @@
     <section class="modal-card-body">
       <button class="button is-info is-outlined" on:click={toggleShowHandTotal}>
         {#if showHandTotal}
-          <span>Hide Hand Total</span>
+          <span>Hide Total</span>
           <span class="icon is-small">
             <i class="fas fa-eye-slash" />
           </span>
