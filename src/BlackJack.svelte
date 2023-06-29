@@ -721,7 +721,7 @@
 
     <!-- Balance progress bars -->
     <div class="is-centered box balance-bars is-dark">
-      <span class="mb-6" id="balance-label">$ {balance}</span>
+      <span class="mb-6" id="balance-label"><i class="fas fa-usd" /> {balance}</span>
       <span
         class="icon is-small js-modal-trigger"
         data-target="settings-modal"
