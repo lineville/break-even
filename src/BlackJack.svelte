@@ -448,13 +448,26 @@
     }
   };
 
-  const donsHint = (userCards: Array<Card>, dealerUpCard: Card, insuranceOpen: boolean, splitHand: boolean, leftHand: Array<Card>, leftHandDone: boolean, rightHand: Array<Card>): string => {
+  const donsHint = (
+    userCards: Array<Card>,
+    dealerUpCard: Card,
+    insuranceOpen: boolean,
+    splitHand: boolean,
+    leftHand: Array<Card>,
+    leftHandDone: boolean,
+    rightHand: Array<Card>
+  ): string => {
     if (insuranceOpen) {
       hintColor = "is-info";
       return "As a matter of principal, I always suggest you reject insurance.";
     }
-    
-    let decision = splitHand && leftHandDone ? decideMove(rightHand, dealerUpCard, !split) : splitHand ? decideMove(leftHand, dealerUpCard, !split) : decideMove(userCards, dealerUpCard, !split);
+
+    let decision =
+      splitHand && leftHandDone
+        ? decideMove(rightHand, dealerUpCard, !split)
+        : splitHand
+        ? decideMove(leftHand, dealerUpCard, !split)
+        : decideMove(userCards, dealerUpCard, !split);
     switch (decision) {
       case "Stay":
         hintColor = "is-danger";
@@ -532,9 +545,23 @@
 
   $: insuranceBet = Math.floor(bet / 2);
   $: insuranceOpen =
-    dealerCards[0].name === "Ace" && computeScore(userCards) !== 21 && !lockedIn && userCards.length === 2;
-  $: canSplit = userCards[0]?.name === userCards[1]?.name && !split && userCards.length === 2;
-  $: hint = donsHint(userCards, dealerCards[0], insuranceOpen, split, leftHand, leftHandDone, rightHand);
+    dealerCards[0].name === "Ace" &&
+    computeScore(userCards) !== 21 &&
+    !lockedIn &&
+    userCards.length === 2;
+  $: canSplit =
+    userCards[0]?.name === userCards[1]?.name &&
+    !split &&
+    userCards.length === 2;
+  $: hint = donsHint(
+    userCards,
+    dealerCards[0],
+    insuranceOpen,
+    split,
+    leftHand,
+    leftHandDone,
+    rightHand
+  );
 
   // Load in balance from localStorage on component mounting
   onMount(() => {
@@ -552,18 +579,6 @@
 <div class="columns is-mobile is-centered" id="blackJackContainer">
   <!-- Main central section -->
   <div class="column is-full">
-    <!-- Hint Fly-in -->
-    <div class="is-centered">
-      {#if hintEnabled}
-        <span
-          class={`tag ${hintColor} is-light is-large subtitle`}
-          transition:fly={{ x: 2000, duration: 500 }}
-        >
-          {hint}
-        </span>
-      {/if}
-    </div>
-
     <!-- Dealer Cards + User Cards -->
     <div class="is-centered" id="cards-section">
       <div>
@@ -701,6 +716,18 @@
       {isBusted}
       {hit}
     />
+
+    <!-- Hint Fly-in -->
+    <div class="is-centered">
+      {#if hintEnabled}
+        <span
+          class={`tag ${hintColor} is-light is-large subtitle`}
+          transition:fly={{ x: 2000, duration: 500 }}
+        >
+          {hint}
+        </span>
+      {/if}
+    </div>
   </div>
 </div>
 
