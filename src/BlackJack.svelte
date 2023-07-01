@@ -97,7 +97,6 @@
     userCards = [];
     split = true;
     balance -= bet;
-    console.log(leftHand)
     if (leftHand[0].name === "Ace") {
       leftHandDone = true;
       rightHandDone = true;
