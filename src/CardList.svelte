@@ -16,7 +16,7 @@
     >
       <div class="card">
         <div class="card-image">
-          <figure class="image is-96x96">
+          <figure class="image is-128x128">
             {#if visible || idx === 0}
               <img src={`./images/${card}.jpg`} alt="playing card" />
             {:else}

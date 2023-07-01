@@ -9,6 +9,16 @@ html {
   height: 100%;
 }
 
-body, main {
+body,
+main {
   min-height: 100%;
+}
+
+input {
+  min-height: 50px;
+}
+
+.button {
+  min-height: 50px;
+  margin: 5px 5px 5px 5px;
 }

@@ -1,6 +1,6 @@
 [package]
 name = "break-even"
-version = "0.1.8"
+version = "0.1.9"
 description = "A simple blackjack game"
 authors = ["lineville"]
 license = "MIT"

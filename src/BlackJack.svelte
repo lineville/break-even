@@ -3,12 +3,14 @@
   import { fly } from "svelte/transition";
   import CardList from "./CardList.svelte";
   import { decideMove, computeScore, cardCount } from "./BasicStrategy";
+  import BalanceBars from "./BalanceBars.svelte";
+  import SettingsModal from "./SettingsModal.svelte";
+  import ControlBar from "./ControlBar.svelte";
 
   const localBucket = window.localStorage;
 
   // -------------Types ------------------
   type Suite = "❤️" | "♦" | "♣️" | "♠️";
-  type Decision = "Hit" | "Stay" | "DoubleDown" | "Split";
   type HandType = "User" | "Dealer" | "Left" | "Right";
   type Card = {
     name: string;
@@ -45,8 +47,6 @@
     // Check if the hand is bust and call the bustFunc callback, otherwise update the hint
     if (isBusted(hand)) {
       bustFunc();
-    } else {
-      hint = donsHint(hand, dealerCards[0]);
     }
   };
 
@@ -63,13 +63,11 @@
       userWon = true;
       push = false;
       balance += bet * 2;
-      progressBarValues = balances();
     } else if (computeScore(userCards) === computeScore(dealerCards)) {
       // Push
       userWon = false;
       push = true;
       balance += bet;
-      progressBarValues = balances();
     }
   };
 
@@ -99,19 +97,16 @@
     userCards = [];
     split = true;
     balance -= bet;
-    progressBarValues = balances();
+    console.log(leftHand)
     if (leftHand[0].name === "Ace") {
       leftHandDone = true;
       rightHandDone = true;
       stayRight();
-    } else {
-      hint = donsHint(leftHand, dealerCards[0]);
     }
   };
 
   const stayLeft = (): void => {
     leftHandDone = true;
-    hint = donsHint(rightHand, dealerCards[0]);
   };
 
   const stayRight = (): void => {
@@ -132,11 +127,9 @@
     ) {
       balance += bet * 2;
       leftWon = true;
-      progressBarValues = balances();
     } else if (computeScore(leftHand) === computeScore(dealerCards)) {
       balance += bet;
       leftPush = false;
-      progressBarValues = balances();
     }
 
     // * Check right hand
@@ -147,11 +140,9 @@
     ) {
       balance += bet * 2;
       rightWon = true;
-      progressBarValues = balances();
     } else if (computeScore(rightHand) === computeScore(dealerCards)) {
       balance += bet;
       rightPush = true;
-      progressBarValues = balances();
     }
 
     if (
@@ -174,17 +165,14 @@
     hitFunc: (hand: Array<Card>, bustFunc: () => void, who: HandType) => void,
     who: HandType
   ): void => {
-    checkForCorrectMove("Hit", hand);
     hitFunc(hand, handleBust, who);
   };
 
   const handleStay = (hand: Array<Card>, stayFunc: () => void): void => {
-    checkForCorrectMove("Stay", hand);
     stayFunc();
   };
 
   const handleSplitHand = (): void => {
-    checkForCorrectMove("Split", userCards);
     splitHand();
   };
 
@@ -194,13 +182,11 @@
     stayFunc: () => void,
     who: HandType
   ): void => {
-    checkForCorrectMove("DoubleDown", hand);
     doubleDown(hand, () => hitFunc(hand, handleBust, who), stayFunc);
   };
 
   const nextHand = (): void => {
     balance -= bet;
-    progressBarValues = balances();
     lockedIn = false;
     split = false;
     userWon = false;
@@ -211,10 +197,6 @@
     rightHandDone = false;
     userCards = [drawCard(), drawCard()];
     dealerCards = [drawCard(), drawCard()];
-    insuranceOpen =
-      dealerCards[0].name === "Ace" && computeScore(userCards) !== 21;
-    canSplit = userCards[0].name === userCards[1].name;
-    hint = donsHint(userCards, dealerCards[0]);
 
     if (deck.length < 15) {
       deck = shuffle(newDeck());
@@ -236,14 +218,11 @@
     } else {
       wonInsurance = false;
       balance -= insuranceBet;
-      progressBarValues = balances();
       lockedIn = false;
       setTimeout(() => {
         insuranceOpen = false;
-        hint = donsHint(userCards, dealerCards[0]);
       }, 2000);
     }
-    hint = donsHint(userCards, dealerCards[0]);
   };
 
   const denyInsurance = (): void => {
@@ -255,7 +234,6 @@
     }
 
     insuranceOpen = false;
-    hint = donsHint(userCards, dealerCards[0]);
   };
 
   // ------- Utils ------------
@@ -471,7 +449,7 @@
     }
   };
 
-  const donsHint = (userCards: Array<Card>, dealerUpCard: Card): string => {
+  const donsHint = (userCards: Array<Card>, dealerUpCard: Card, insuranceOpen: boolean): string => {
     if (insuranceOpen) {
       hintColor = "is-info";
       return "As a matter of principal, I always suggest you reject insurance.";
@@ -493,17 +471,8 @@
     }
   };
 
-  const checkForCorrectMove = (move: Decision, cards: Array<Card>): void => {
-    const correctDecision = decideMove(cards, dealerCards[0], !split);
-    if (move === correctDecision) {
-      correctDecisions += 1;
-    }
-    handsPlayed += 1;
-  };
-
   const newGameState = () => {
     balance = 100;
-    progressBarValues = balances();
     bet = 10;
     deckCount = 0;
     peekDealer = false;
@@ -515,29 +484,13 @@
     leftHandDone = false;
     rightHandDone = false;
     hintColor = "is-info";
-    handsPlayed = 1;
-    correctDecisions = 1;
-    insuranceBet = Math.floor(bet / 2);
     deck = shuffle(newDeck());
     dealerCards = [drawCard(), drawCard()];
     userCards = [drawCard(), drawCard()];
-    insuranceOpen =
-      dealerCards[0].name === "Ace" && computeScore(userCards) !== 21;
-    canSplit = userCards[0].name === userCards[1].name;
     leftHand = [];
     rightHand = [];
-    hint = donsHint(userCards, dealerCards[0]);
     wonInsurance = false;
     betOnInsurance = false;
-  };
-
-  const balances = () => {
-    if (Math.abs(balance) <= 100) {
-      return [balance];
-    }
-    let result = new Array(Math.ceil(Math.abs(balance / 100))).fill(100, 1);
-    result[0] = Math.abs(balance) % 100;
-    return result;
   };
 
   const toggleShowHandTotal = () => {
@@ -567,24 +520,21 @@
   let leftHandDone = false;
   let rightHandDone = false;
   let hintColor = "is-info";
-  let handsPlayed = 1;
-  let correctDecisions = 1;
-  let insuranceBet = Math.floor(bet / 2);
   let deck = shuffle(newDeck());
   let dealerCards: Array<Card> = [drawCard(), drawCard()];
   let userCards: Array<Card> = [drawCard(), drawCard()];
-  let insuranceOpen =
-    dealerCards[0].name === "Ace" && computeScore(userCards) !== 21;
-  let canSplit = userCards[0].name === userCards[1].name;
   let leftHand: Array<Card> = [];
   let rightHand: Array<Card> = [];
-  let hint = donsHint(userCards, dealerCards[0]);
   let wonInsurance = false;
   let betOnInsurance = false;
   let showHandTotal = false;
   let hintEnabled = false;
 
-  let progressBarValues = [balance];
+  $: insuranceBet = Math.floor(bet / 2);
+  $: insuranceOpen =
+    dealerCards[0].name === "Ace" && computeScore(userCards) !== 21 && !lockedIn && userCards.length === 2;
+  $: canSplit = userCards[0]?.name === userCards[1]?.name && !split && userCards.length === 2;
+  $: hint = donsHint(userCards, dealerCards[0], insuranceOpen);
 
   // Load in balance from localStorage on component mounting
   onMount(() => {
@@ -642,7 +592,7 @@
                 >
                   {computeScore(leftHand)}
                 </span>
-                <span style="display:inline-block; width: 270px;" />
+                <span style="display:inline-block; width: 325px;" />
                 <span
                   class={`tag is-large is-light ${cardTotalColorTheme(
                     computeScore(rightHand)
@@ -720,378 +670,48 @@
       {/if}
     </div>
 
-    <!-- Balance progress bars -->
-    <div class="is-centered box balance-bars is-dark">
-      <span class="mb-6" id="balance-label">$ {balance}</span>
-      <span
-        class="icon is-small js-modal-trigger"
-        data-target="settings-modal"
-        id="corner-refresh"
-      >
-        <i class="fas fa-gear" />
-      </span>
+    <BalanceBars {balance} />
 
-      {#each progressBarValues as b}
-        <progress
-          class={`progress is-narrow box ${
-            balance > 0 ? "is-primary" : "is-warning"
-          }`}
-          value={b}
-          max="100"
-        />
-      {/each}
-    </div>
-
-    <!-- Control Bar -->
-    <div class="is-centered box is-dark" id="controlBar">
-      {#if insuranceOpen}
-        <div class="field">
-          <div transition:fly={{ x: -1000, duration: 500 }}>
-            <h3>Insurance ?</h3>
-            <span class="control has-icons-left">
-              <input
-                class="input is-info"
-                type="number"
-                id="insuranceBet"
-                name="insuranceBet"
-                bind:value={insuranceBet}
-                max={Math.floor(bet / 2)}
-                min={1}
-              />
-
-              <span class="icon is-small is-left" id="insuranceDollarSign">
-                <i class="fa fa-dollar-sign" />
-              </span>
-            </span>
-
-            <button
-              class="button is-success is-outlined"
-              on:click={acceptInsurance}
-            >
-              <span class="icon is-small">
-                <i class="fas fa-angle-double-left" />
-              </span>
-              <span class="icon is-small">
-                <i class="fas fa-check" />
-              </span>
-            </button>
-
-            <button
-              class="button is-danger is-outlined"
-              on:click={denyInsurance}
-            >
-              <span class="icon is-small">
-                <i class="fas fa-times" />
-              </span>
-              <span class="icon is-small">
-                <i class="fas fa-angle-double-right" />
-              </span>
-            </button>
-
-            {#if wonInsurance}
-              <span
-                class="icon is-small"
-                in:fly={{ y: -1000, duration: 500 }}
-                out:fly={{ y: -1000, duration: 500, delay: 800 }}
-              >
-                <i class="fas fa-coins" />
-              </span>
-
-              <span
-                class={`tag is-light is-success is-medium`}
-                id="infoTag"
-                transition:fly={{ x: 1000, duration: 500 }}
-              >
-                You won ${insuranceBet} from the insurance side bet even though you
-                lost the hand.
-              </span>
-            {/if}
-
-            {#if betOnInsurance && !wonInsurance}
-              <span
-                class={`tag is-light is-danger is-medium`}
-                id="infoTag"
-                transition:fly={{ x: 1000, duration: 500, delay: 500 }}
-              >
-                You lost ${insuranceBet} from the insurance side bet. Don't worry
-                you've still got a chance!
-              </span>
-            {/if}
-          </div>
-        </div>
-      {:else}
-        <div
-          class="field"
-          transition:fly={{ x: 2000, duration: 500, delay: 200 }}
-        >
-          <div>
-            {#if split}
-              <div class="split-controls columns mb-2 mt-2">
-                <button
-                  class="button is-danger is-outlined column"
-                  on:click={() => handleStay(leftHand, stayLeft)}
-                  disabled={leftHandDone || isBusted(leftHand)}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-left" />
-                  </span>
-                  <span>Stay</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-paper" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-success is-outlined column"
-                  on:click={() =>
-                    handleDoubleDown(
-                      leftHand,
-                      () => hit(leftHand, handleLeftHandBust, "Left"),
-                      stayLeft,
-                      "Left"
-                    )}
-                  disabled={leftHandDone || leftHand.length > 2}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-down" />
-                  </span>
-                  <span>Double</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-coins" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-info is-outlined column"
-                  on:click={() =>
-                    handleHit(
-                      leftHand,
-                      () => hit(leftHand, handleLeftHandBust, "Left"),
-                      "Left"
-                    )}
-                  disabled={leftHandDone || isBusted(leftHand)}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-holding-medical" />
-                  </span>
-                  <span>Hit</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-right" />
-                  </span>
-                </button>
-
-                <span class="ml-6 mr-6" />
-
-                <button
-                  class="button is-danger is-outlined column"
-                  on:click={() => handleStay(rightHand, stayRight)}
-                  disabled={!(leftHandDone || isBusted(leftHand)) ||
-                    rightHandDone ||
-                    isBusted(rightHand)}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-left" />
-                  </span>
-                  <span>Stay</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-paper" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-success is-outlined column"
-                  on:click={() =>
-                    handleDoubleDown(
-                      rightHand,
-                      () => hit(rightHand, handleRightHandBust, "Right"),
-                      stayRight,
-                      "Right"
-                    )}
-                  disabled={!leftHandDone ||
-                    rightHand.length > 2 ||
-                    rightHandDone}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-down" />
-                  </span>
-                  <span>Double</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-coins" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-info is-outlined column"
-                  on:click={() =>
-                    handleHit(
-                      rightHand,
-                      () => hit(rightHand, handleRightHandBust, "Right"),
-                      "Right"
-                    )}
-                  disabled={!(
-                    leftHandDone ||
-                    isBusted(leftHand) ||
-                    isBusted(rightHand)
-                  ) || rightHandDone}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-holding-medical" />
-                  </span>
-                  <span>Hit</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-right" />
-                  </span>
-                </button>
-              </div>
-            {:else}
-              <div class="columns mb-2 mt-2">
-                <button
-                  class="button is-danger is-outlined column"
-                  on:click={() => handleStay(userCards, stay)}
-                  disabled={lockedIn}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-left" />
-                  </span>
-                  <span>Stay</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-paper" />
-                  </span>
-                </button>
-
-                {#if canSplit && !split}
-                  <button
-                    class="button is-warning is-outlined column"
-                    id="splitButton"
-                    on:click={handleSplitHand}
-                    transition:fly={{ y: -1000, duration: 500 }}
-                  >
-                    <span class="icon is-small">
-                      <i class="fas fa-chevron-up" />
-                    </span>
-                    <span>Split</span>
-                    <span class="icon is-small">
-                      <i class="fas fa-expand-alt" />
-                    </span>
-                  </button>
-                {/if}
-
-                <button
-                  class="button is-success is-outlined column"
-                  on:click={() =>
-                    handleDoubleDown(
-                      userCards,
-                      () => hit(userCards, handleBust, "User"),
-                      stay,
-                      "User"
-                    )}
-                  disabled={lockedIn || userCards.length !== 2}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-down" />
-                  </span>
-                  <span>Double</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-coins" />
-                  </span>
-                </button>
-
-                <button
-                  class="button is-info is-outlined column"
-                  on:click={() =>
-                    handleHit(
-                      userCards,
-                      () => hit(userCards, handleBust, "User"),
-                      "User"
-                    )}
-                  disabled={lockedIn}
-                >
-                  <span class="icon is-small">
-                    <i class="fas fa-hand-holding-medical" />
-                  </span>
-                  <span>Hit</span>
-                  <span class="icon is-small">
-                    <i class="fas fa-chevron-right" />
-                  </span>
-                </button>
-              </div>
-            {/if}
-          </div>
-        </div>
-      {/if}
-    </div>
+    <ControlBar
+      {insuranceOpen}
+      {insuranceBet}
+      {bet}
+      {acceptInsurance}
+      {denyInsurance}
+      {wonInsurance}
+      {betOnInsurance}
+      {split}
+      {handleSplitHand}
+      {leftHand}
+      {rightHand}
+      {stayLeft}
+      {stayRight}
+      {stay}
+      {leftHandDone}
+      {rightHandDone}
+      {handleStay}
+      {handleDoubleDown}
+      {handleHit}
+      {userCards}
+      {lockedIn}
+      {handleBust}
+      {handleLeftHandBust}
+      {handleRightHandBust}
+      {canSplit}
+      {isBusted}
+      {hit}
+    />
   </div>
 </div>
 
-<!-- Settings Modal -->
-<div id="settings-modal" class="modal">
-  <div class="modal-background" />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Settings</p>
-      <button class="delete" aria-label="close" />
-    </header>
-    <section class="modal-card-body">
-      <button class="button is-info is-outlined" on:click={toggleShowHandTotal}>
-        {#if showHandTotal}
-          <span>Hide Total</span>
-          <span class="icon is-small">
-            <i class="fas fa-eye-slash" />
-          </span>
-        {:else}
-          <span>Show Total</span>
-          <span class="icon is-small">
-            <i class="fas fa-eye" />
-          </span>
-        {/if}
-      </button>
-
-      <button class="button is-danger is-outlined" on:click={newGameState}>
-        <span>New Game</span>
-        <span class="icon is-small">
-          <i class="fas fa-rotate" />
-        </span>
-      </button>
-
-      <button
-        class="button is-primary is-outlined"
-        on:click={() => {
-          hintEnabled = !hintEnabled;
-        }}
-      >
-        <span>{hintEnabled ? "Hide Hint" : "Ask Don"}</span>
-        <span class="icon is-medium">
-          <i class="fas fa-question-circle" />
-        </span>
-      </button>
-
-      <a
-        class="button is-outlined"
-        href="https://github.com/lineville/break-even"
-        target="_blank"
-        id="github-link"
-      >
-        <span>Source Code</span>
-        <span class="icon is-large">
-          <i class="fab fa-github" />
-        </span>
-      </a>
-    </section>
-
-    <footer class="modal-card-foot" />
-  </div>
-</div>
+<SettingsModal
+  {toggleShowHandTotal}
+  {showHandTotal}
+  {newGameState}
+  {hintEnabled}
+/>
 
 <style>
-  input {
-    min-height: 50px;
-  }
-
-  .button {
-    min-height: 50px;
-    margin: 5px 5px 5px 5px;
-  }
-
   :disabled {
     pointer-events: none;
   }
@@ -1122,19 +742,6 @@
     margin-top: 5px;
   }
 
-  #insuranceBet {
-    width: 100px;
-    margin-top: 5px;
-  }
-
-  #controlBar,
-  .balance-bars {
-    margin-left: 10vw;
-    margin-right: 10vw;
-    margin-top: 3vh;
-    margin-bottom: 3vh;
-  }
-
   #cards-section {
     margin-top: 5vh;
   }
@@ -1142,17 +749,5 @@
   .notification {
     margin-left: 10vw;
     margin-right: 10vw;
-  }
-
-  #insuranceDollarSign {
-    margin-top: 18px;
-  }
-
-  #balance-label {
-    font-size: x-large;
-  }
-
-  #corner-refresh {
-    float: right;
   }
 </style>
