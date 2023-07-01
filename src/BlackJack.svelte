@@ -225,7 +225,7 @@
     localBucket.setItem("Balance", balance.toString());
   };
 
-  const handleInsurance = (): void => {
+  const acceptInsurance = (): void => {
     lockedIn = true;
     betOnInsurance = true;
 
@@ -387,9 +387,8 @@
         }
         break;
       case "ArrowLeft":
-      case "a":
         if (insuranceOpen) {
-          handleInsurance();
+          acceptInsurance();
           return;
         }
         if (!lockedIn && !split) {
@@ -402,7 +401,6 @@
         }
         break;
       case "ArrowRight":
-      case "d":
         if (insuranceOpen) {
           denyInsurance();
           return;
@@ -429,13 +427,11 @@
         }
         break;
       case "ArrowUp":
-      case "w":
         if (canSplit && !split) {
           handleSplitHand();
         }
         break;
       case "ArrowDown":
-      case "s":
         if (!lockedIn && userCards.length === 2 && !split) {
           handleDoubleDown(
             userCards,
@@ -460,6 +456,15 @@
             "Right"
           );
         }
+        break;
+      case "s":
+        toggleShowHandTotal();
+        break;
+      case "h":
+        hintEnabled = !hintEnabled;
+        break;
+      case "r":
+        newGameState();
         break;
       default:
         break;
@@ -683,9 +688,7 @@
             }`}
             id="wonOrLost"
           >
-            <strong
-              >{userWon ? "You Won!" : push ? "You Tied!" : "You Lost!"}</strong
-            >
+            <h1>{userWon ? "Win 🎉" : push ? "Push 🙃" : "Loss 😢"}</h1>
           </span>
 
           <span class="control has-icons-left">
@@ -701,7 +704,7 @@
             />
 
             <span class="icon is-small is-left">
-              <i class="fa fa-dollar-sign" id="betDollarSign" />
+              <i class="fa fa-dollar-sign" />
             </span>
           </span>
           <button
@@ -713,8 +716,6 @@
               <i class="fas fa-angle-double-right" />
             </span>
           </button>
-
-          <span>(or press enter)</span>
         </div>
       {/if}
     </div>
@@ -765,7 +766,7 @@
 
             <button
               class="button is-success is-outlined"
-              on:click={handleInsurance}
+              on:click={acceptInsurance}
             >
               <span class="icon is-small">
                 <i class="fas fa-angle-double-left" />
@@ -1095,6 +1096,11 @@
     pointer-events: none;
   }
 
+  h1 {
+    font-size: x-large;
+    margin-top: 10px;
+  }
+
   .title {
     margin-top: 20px;
   }
@@ -1108,7 +1114,7 @@
   }
 
   .fa-dollar-sign {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
   }
 
   #bet {
@@ -1136,10 +1142,6 @@
   .notification {
     margin-left: 10vw;
     margin-right: 10vw;
-  }
-
-  #betDollarSign {
-    margin-top: 8px;
   }
 
   #insuranceDollarSign {
