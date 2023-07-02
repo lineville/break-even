@@ -5,7 +5,7 @@
 
   const balances = (balance) => {
     if (Math.abs(balance) <= 100) {
-      return [balance];
+      return [Math.abs(balance)];
     }
     let result = new Array(Math.ceil(Math.abs(balance / 100))).fill(100, 1);
     result[0] = Math.abs(balance) % 100 === 0 ? 100 : Math.abs(balance) % 100;
