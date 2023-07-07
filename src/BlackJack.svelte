@@ -79,11 +79,11 @@
     balance -= bet; // Bet again
     bet *= 2; // Double the bet
 
-    let bustFunc = split
+    let bustFunc = isSplit
       ? leftHandDone
-        ? handleLeftHandBust
-        : handleRightHandBust
-      : handleBust;
+        ? leftHandBust
+        : rightHandBust
+      : bust;
     hitFunc(hand, bustFunc, "User");
     if (!isBusted(userCards)) {
       stayFunction();
@@ -91,11 +91,11 @@
     bet /= 2; // Reset the bet
   };
 
-  const splitHand = (): void => {
+  const split = (): void => {
     leftHand = [userCards[0], drawCard()];
     rightHand = [userCards[1], drawCard()];
     userCards = [];
-    split = true;
+    isSplit = true;
     balance -= bet;
     if (leftHand[0].name === "Ace") {
       leftHandDone = true;
@@ -157,37 +157,10 @@
     }
   };
 
-  // ------ Click Handlers ----------
-
-  const handleHit = (
-    hand: Array<Card>,
-    hitFunc: (hand: Array<Card>, bustFunc: () => void, who: HandType) => void,
-    who: HandType
-  ): void => {
-    hitFunc(hand, handleBust, who);
-  };
-
-  const handleStay = (hand: Array<Card>, stayFunc: () => void): void => {
-    stayFunc();
-  };
-
-  const handleSplitHand = (): void => {
-    splitHand();
-  };
-
-  const handleDoubleDown = (
-    hand: Array<Card>,
-    hitFunc: (hand: Array<Card>, bustFunc: () => void, who: HandType) => void,
-    stayFunc: () => void,
-    who: HandType
-  ): void => {
-    doubleDown(hand, () => hitFunc(hand, handleBust, who), stayFunc);
-  };
-
   const nextHand = (): void => {
     balance -= bet;
     lockedIn = false;
-    split = false;
+    isSplit = false;
     userWon = false;
     push = false;
     wonInsurance = false;
@@ -328,17 +301,17 @@
     return dealerCards;
   };
 
-  const handleBust = (): void => {
+  const bust = (): void => {
     lockedIn = true;
     userWon = false;
     push = false;
   };
 
-  const handleLeftHandBust = (): void => {
+  const leftHandBust = (): void => {
     leftHandDone = true;
   };
 
-  const handleRightHandBust = (): void => {
+  const rightHandBust = (): void => {
     rightHandDone = true;
     lockedIn = true;
 
@@ -368,13 +341,13 @@
           acceptInsurance();
           return;
         }
-        if (!lockedIn && !split) {
-          handleStay(userCards, stay);
+        if (!lockedIn && !isSplit) {
+          stay();
         }
-        if (split && !leftHandDone) {
-          handleStay(leftHand, stayLeft);
-        } else if (split && leftHandDone && !rightHandDone) {
-          handleStay(rightHand, stayRight);
+        if (isSplit && !leftHandDone) {
+          stayLeft();
+        } else if (isSplit && leftHandDone && !rightHandDone) {
+          stayRight();
         }
         break;
       case "ArrowRight":
@@ -382,55 +355,36 @@
           denyInsurance();
           return;
         }
-        if (!lockedIn && !split) {
-          handleHit(
-            userCards,
-            () => hit(userCards, handleBust, "User"),
-            "User"
-          );
+        if (!lockedIn && !isSplit) {
+          hit(userCards, bust, "User");
         }
-        if (split && !leftHandDone) {
-          handleHit(
-            leftHand,
-            () => hit(leftHand, handleLeftHandBust, "Left"),
-            "Left"
-          );
-        } else if (split && leftHandDone && !rightHandDone) {
-          handleHit(
-            rightHand,
-            () => hit(rightHand, handleRightHandBust, "Right"),
-            "Right"
-          );
+        if (isSplit && !leftHandDone) {
+          hit(leftHand, leftHandBust, "Left");
+        } else if (isSplit && leftHandDone && !rightHandDone) {
+          hit(rightHand, rightHandBust, "Right");
         }
         break;
       case "ArrowUp":
-        if (canSplit && !split) {
-          handleSplitHand();
+        if (canSplit && !isSplit) {
+          split();
         }
         break;
       case "ArrowDown":
-        if (!lockedIn && userCards.length === 2 && !split) {
-          handleDoubleDown(
-            userCards,
-            () => hit(userCards, handleBust, "User"),
-            stay,
-            "User"
-          );
+        if (!lockedIn && userCards.length === 2 && !isSplit) {
+          doubleDown(userCards, () => hit(userCards, bust, "User"), stay);
         }
 
-        if (split && !leftHandDone) {
-          handleDoubleDown(
+        if (isSplit && !leftHandDone) {
+          doubleDown(
             leftHand,
-            () => hit(leftHand, handleLeftHandBust, "Left"),
-            stayLeft,
-            "Left"
+            () => hit(leftHand, leftHandBust, "Left"),
+            stayLeft
           );
-        } else if (split && leftHandDone && !rightHandDone) {
-          handleDoubleDown(
+        } else if (isSplit && leftHandDone && !rightHandDone) {
+          doubleDown(
             rightHand,
-            () => hit(rightHand, handleRightHandBust, "Right"),
-            stayRight,
-            "Right"
+            () => hit(rightHand, rightHandBust, "Right"),
+            stayRight
           );
         }
         break;
@@ -464,10 +418,10 @@
 
     let decision =
       splitHand && leftHandDone
-        ? decideMove(rightHand, dealerUpCard, !split)
+        ? decideMove(rightHand, dealerUpCard, !isSplit)
         : splitHand
-        ? decideMove(leftHand, dealerUpCard, !split)
-        : decideMove(userCards, dealerUpCard, !split);
+        ? decideMove(leftHand, dealerUpCard, !isSplit)
+        : decideMove(userCards, dealerUpCard, !isSplit);
     switch (decision) {
       case "Stay":
         hintColor = "is-danger";
@@ -488,9 +442,8 @@
     balance = 100;
     bet = 10;
     deckCount = 0;
-    peekDealer = false;
     lockedIn = false;
-    split = false;
+    isSplit = false;
     hintEnabled = false;
     userWon = false;
     push = false;
@@ -525,9 +478,8 @@
   let balance = 100;
   let bet = 10;
   let deckCount = 0;
-  let peekDealer = false;
   let lockedIn = false;
-  let split = false;
+  let isSplit = false;
   let userWon = false;
   let push = false;
   let leftHandDone = false;
@@ -543,6 +495,8 @@
   let showHandTotal = false;
   let hintEnabled = false;
 
+  // ------------ Derived state ------------
+
   $: insuranceBet = Math.floor(bet / 2);
   $: insuranceOpen =
     dealerCards[0].name === "Ace" &&
@@ -551,17 +505,21 @@
     userCards.length === 2;
   $: canSplit =
     userCards[0]?.name === userCards[1]?.name &&
-    !split &&
+    !isSplit &&
     userCards.length === 2;
   $: hint = donsHint(
     userCards,
     dealerCards[0],
     insuranceOpen,
-    split,
+    isSplit,
     leftHand,
     leftHandDone,
     rightHand
   );
+
+  // Screen width
+  let innerWidth = 0;
+  $: isTouch = innerWidth <= 768;
 
   // Load in balance from localStorage on component mounting
   onMount(() => {
@@ -574,28 +532,30 @@
   });
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={handleKeydown} bind:innerWidth />
 
 <div class="columns is-mobile is-centered" id="blackJackContainer">
   <!-- Main central section -->
   <div class="column is-full">
     <!-- Dealer Cards + User Cards -->
     <div class="is-centered" id="cards-section">
+      
       <div>
         <!-- Dealer cards -->
         <CardList
           cards={dealerCards.map((c) => cardToImage(c))}
-          visible={peekDealer || lockedIn}
+          visible={lockedIn}
+          isSplit={false}
         />
 
-        <p class="mt-6 mb-6" />
+        <div id="divider" />
 
         <!-- Player cards -->
-        {#if split}
+        {#if isSplit}
           <ul>
-            <CardList cards={leftHand.map((c) => cardToImage(c))} />
+            <CardList cards={leftHand.map((c) => cardToImage(c))} {isSplit} />
             <span style="display:inline-block; width: 100px;" />
-            <CardList cards={rightHand.map((c) => cardToImage(c))} />
+            <CardList cards={rightHand.map((c) => cardToImage(c))} {isSplit} />
 
             {#if showHandTotal}
               <div class="is-centered mt-6">
@@ -620,7 +580,7 @@
             {/if}
           </ul>
         {:else}
-          <CardList cards={userCards.map((c) => cardToImage(c))} />
+          <CardList cards={userCards.map((c) => cardToImage(c))} {isSplit} />
           {#if showHandTotal}
             <div class="is-centered mt-6">
               <span
@@ -635,9 +595,6 @@
           {/if}
         {/if}
       </div>
-
-      <!-- Divider -->
-      <p class="mt-6 mb-6" />
 
       <!-- Notification Fly-In -->
       {#if lockedIn}
@@ -676,7 +633,9 @@
             class="button is-info is-outlined is-light"
             on:click={nextHand}
           >
-            <span>Next Hand</span>
+            {#if !isTouch}
+              <span>Next Hand</span>
+            {/if}
             <span class="icon is-small">
               <i class="fas fa-angle-double-right" />
             </span>
@@ -685,8 +644,10 @@
       {/if}
     </div>
 
-    <BalanceBars {balance} />
+    <!-- Balance Bars -->
+    <BalanceBars {balance} {lockedIn} />
 
+    <!-- Control Bar -->
     <ControlBar
       {insuranceOpen}
       {insuranceBet}
@@ -695,8 +656,7 @@
       {denyInsurance}
       {wonInsurance}
       {betOnInsurance}
-      {split}
-      {handleSplitHand}
+      {isSplit}
       {leftHand}
       {rightHand}
       {stayLeft}
@@ -704,30 +664,31 @@
       {stay}
       {leftHandDone}
       {rightHandDone}
-      {handleStay}
-      {handleDoubleDown}
-      {handleHit}
       {userCards}
       {lockedIn}
-      {handleBust}
-      {handleLeftHandBust}
-      {handleRightHandBust}
       {canSplit}
       {isBusted}
       {hit}
+      {doubleDown}
+      {leftHandBust}
+      {rightHandBust}
+      {bust}
+      {split}
     />
 
     <!-- Hint Fly-in -->
-    <div class="is-centered">
-      {#if hintEnabled}
+    {#if hintEnabled}
+      <div class="is-centered">
         <span
-          class={`tag ${hintColor} is-light is-large subtitle`}
+          class={`tag ${hintColor} is-light ${
+            isTouch ? "is-small" : "is-large"
+          } subtitle`}
           transition:fly={{ x: 2000, duration: 500 }}
         >
           {hint}
         </span>
-      {/if}
-    </div>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -746,10 +707,6 @@
   h1 {
     font-size: x-large;
     margin-top: 10px;
-  }
-
-  .title {
-    margin-top: 20px;
   }
 
   .subtitle {
@@ -771,10 +728,24 @@
 
   #cards-section {
     margin-top: 5vh;
+    margin-bottom: 2vh;
   }
 
   .notification {
-    margin-left: 10vw;
-    margin-right: 10vw;
+    margin-left: 20vw;
+    margin-right: 20vw;
+    margin-top: 3vh;
+  }
+
+  @media screen and (max-device-width: 768px) {
+    .notification {
+      margin-left: 2vw;
+      margin-right: 2vw;
+    }
+  }
+
+  #divider {
+    margin-top: 5vh;
+    margin-bottom: 5vh;
   }
 </style>

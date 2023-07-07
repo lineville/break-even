@@ -1,5 +1,6 @@
 <script lang="ts">
   export let balance;
+  export let lockedIn = false;
 
   $: progressBarValues = balances(balance);
 
@@ -13,7 +14,7 @@
   };
 </script>
 
-<div class="is-centered box balance-bars is-dark">
+<div class={`is-centered box balance-bars is-dark ${lockedIn ? "no-gap" : ""}`}>
   <span class="mb-6" id="balance-label">$ {balance}</span>
   <span
     class="icon is-small js-modal-trigger"
@@ -36,10 +37,21 @@
 
 <style>
   .balance-bars {
-    margin-left: 10vw;
-    margin-right: 10vw;
-    margin-top: 3vh;
-    margin-bottom: 3vh;
+    margin-left: 20vw;
+    margin-right: 20vw;
+    margin-top: 4vh;
+  }
+
+  @media screen and (max-device-width: 768px) {
+    .balance-bars {
+      margin-left: 2vw;
+      margin-right: 2vw;
+      margin-top: 4vh;
+    }
+  }
+
+  .no-gap {
+    margin-top: 0;
   }
 
   #balance-label {
