@@ -567,7 +567,7 @@
                 >
                   {computeScore(leftHand)}
                 </span>
-                <span style="display:inline-block; width: 325px;" />
+                <span style="display:inline-block; width: 325px;" class:narrow-gap={isTouch && isSplit} />
                 <span
                   class={`tag is-large is-light ${cardTotalColorTheme(
                     computeScore(rightHand)
@@ -747,5 +747,9 @@
   #divider {
     margin-top: 5vh;
     margin-bottom: 5vh;
+  }
+
+  .narrow-gap {
+    width: 125px !important;
   }
 </style>
