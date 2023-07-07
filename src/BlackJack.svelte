@@ -539,7 +539,6 @@
   <div class="column is-full">
     <!-- Dealer Cards + User Cards -->
     <div class="is-centered" id="cards-section">
-      
       <div>
         <!-- Dealer cards -->
         <CardList
@@ -567,7 +566,10 @@
                 >
                   {computeScore(leftHand)}
                 </span>
-                <span style="display:inline-block; width: 325px;" class:narrow-gap={isTouch && isSplit} />
+                <span
+                  style="display:inline-block; width: 325px;"
+                  class:narrow-gap={isTouch && isSplit}
+                />
                 <span
                   class={`tag is-large is-light ${cardTotalColorTheme(
                     computeScore(rightHand)
@@ -677,8 +679,8 @@
     />
 
     <!-- Hint Fly-in -->
-    {#if hintEnabled}
-      <div class="is-centered">
+    <div class="is-centered">
+      {#if hintEnabled}
         <span
           class={`tag ${hintColor} is-light ${
             isTouch ? "is-small" : "is-large"
@@ -687,8 +689,8 @@
         >
           {hint}
         </span>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 </div>
 
