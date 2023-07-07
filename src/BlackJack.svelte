@@ -463,6 +463,10 @@
     showHandTotal = !showHandTotal;
   };
 
+  const toggleHintEnabled = () => {
+    hintEnabled = !hintEnabled;
+  };
+
   const cardTotalColorTheme = (score: number): string => {
     if (score > 21) {
       return "is-danger";
@@ -696,6 +700,7 @@
 
 <SettingsModal
   {toggleShowHandTotal}
+  {toggleHintEnabled}
   {showHandTotal}
   {newGameState}
   {hintEnabled}

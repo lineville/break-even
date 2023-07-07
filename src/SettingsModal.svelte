@@ -1,10 +1,10 @@
 <script lang="ts">
   export let toggleShowHandTotal;
+  export let toggleHintEnabled;
   export let showHandTotal;
   export let newGameState;
   export let hintEnabled;
 </script>
-
 
 <div id="settings-modal" class="modal">
   <div class="modal-background" />
@@ -35,12 +35,7 @@
         </span>
       </button>
 
-      <button
-        class="button is-primary is-outlined"
-        on:click={() => {
-          hintEnabled = !hintEnabled;
-        }}
-      >
+      <button class="button is-primary is-outlined" on:click={toggleHintEnabled}>
         <span>{hintEnabled ? "Hide Hint" : "Ask Don"}</span>
         <span class="icon is-medium">
           <i class="fas fa-question-circle" />
