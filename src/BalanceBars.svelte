@@ -37,8 +37,8 @@
 
 <style>
   .balance-bars {
-    margin-left: 20vw;
-    margin-right: 20vw;
+    margin-left: 15vw;
+    margin-right: 15vw;
     margin-top: 4vh;
   }
 

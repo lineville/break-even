@@ -732,9 +732,9 @@
   }
 
   .notification {
-    margin-left: 20vw;
-    margin-right: 20vw;
-    margin-top: 3vh;
+    margin-left: 15vw;
+    margin-right: 15vw;
+    margin-top: 5vh;
   }
 
   @media screen and (max-device-width: 768px) {
