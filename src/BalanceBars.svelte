@@ -39,7 +39,7 @@
   .balance-bars {
     margin-left: 15vw;
     margin-right: 15vw;
-    margin-top: 4vh;
+    margin-top: 8vh;
   }
 
   @media screen and (max-device-width: 768px) {
