@@ -11,7 +11,7 @@ Go to [break-even.vercel.app](break-even.vercel.app)
 ### Desktop App
 
 Download your OS specific file from the assets of the latest [release](https://github.com/lineville/break-even/releases/latest)
-  - macOS (`.dmg` for Intel Macs or `app.tar.gz` for Apple Silicon Macs)
-  - Linux (`.dev` or `.appimage`)
-  - Windows: (`.exe` or `.msi`)
-  
+
+- macOS (`.dmg` for Intel Macs or `app.tar.gz` for Apple Silicon Macs)
+- Linux (`.dev` or `.appimage`)
+- Windows: (`.exe` or `.msi`)
