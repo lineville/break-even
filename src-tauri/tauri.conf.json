@@ -28,7 +28,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "breakeven.dev",
+      "identifier": "break-even.vercel.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

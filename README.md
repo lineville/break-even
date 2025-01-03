@@ -6,7 +6,7 @@ Inspired by my grandfather Donald J. Neville (1930-2019) who loved to play Black
 
 ### Web
 
-Go to [breakeven.dev](https://breakeven.dev)
+Go to [break-even.vercel.app](break-even.vercel.app)
 
 ### Desktop App
 
