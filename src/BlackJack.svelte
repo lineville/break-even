@@ -616,7 +616,7 @@
       {#if hintEnabled}
         <div class="is-centered">
           <div
-            style="display: flex; justify-content: space-evenly; align-items: center;"
+            style="display: flex; align-items: center; justify-content: center;"
           >
             <figure class="image is-32x32 mr-4 mb-8">
               <img
