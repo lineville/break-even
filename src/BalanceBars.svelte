@@ -54,6 +54,10 @@
 </div>
 
 <style>
+  .icon:hover {
+    cursor: pointer;
+  }
+
   .balance-bars {
     margin-left: 15vw;
     margin-right: 15vw;
