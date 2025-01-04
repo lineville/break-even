@@ -480,10 +480,7 @@
   let hintColor = "is-info";
   let deck = shuffle(newDeck());
   let dealerCards: Array<Card> = [drawCard(), drawCard()];
-  let userCards: Array<Card> = [
-    { name: "Two", value: 2, optionalValue: null, suite: "❤️" },
-    { name: "Two", value: 2, optionalValue: null, suite: "♦" },
-  ];
+  let userCards: Array<Card> = [drawCard(), drawCard()];
   let leftHand: Array<Card> = [];
   let rightHand: Array<Card> = [];
   let wonInsurance = false;
