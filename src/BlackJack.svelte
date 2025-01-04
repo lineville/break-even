@@ -406,11 +406,23 @@
     splitHand: boolean,
     leftHand: Array<Card>,
     leftHandDone: boolean,
-    rightHand: Array<Card>
+    rightHand: Array<Card>,
+    isLockedIn: boolean,
+    victorious: boolean
   ): string => {
     if (insuranceOpen) {
       hintColor = "is-danger";
       return "I never take insurance, but that's just me 😉";
+    }
+
+    if (isLockedIn) {
+      if (victorious) {
+        hintColor = "is-success";
+        return "That'll get us one hand closer to a free lunch!";
+      } else {
+        hintColor = "is-danger";
+        return "It's a game of numbers, stick to the plan!";
+      }
     }
 
     let decision =
@@ -505,7 +517,9 @@
     isSplit,
     leftHand,
     leftHandDone,
-    rightHand
+    rightHand,
+    lockedIn,
+    userWon
   );
 
   // Screen width
