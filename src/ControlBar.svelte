@@ -49,7 +49,7 @@
       </span>
 
       <button
-        class="button is-success is-outlined insurance-button"
+        class="button is-success insurance-button"
         on:click={acceptInsurance}
       >
         <span class="icon is-small">
@@ -61,7 +61,7 @@
       </button>
 
       <button
-        class="button is-danger is-outlined insurance-button"
+        class="button is-danger insurance-button"
         on:click={denyInsurance}
       >
         <span class="icon is-small">
@@ -108,7 +108,7 @@
         <div class="split-controls columns is-mobile mb-1 mt-1">
           <div class="column">
             <button
-              class="button is-danger is-outlined"
+              class="button is-danger"
               on:click={stayLeft}
               disabled={leftHandDone || isBusted(leftHand)}
             >
@@ -122,7 +122,7 @@
             </button>
 
             <button
-              class="button is-success is-outlined"
+              class="button is-success"
               on:click={() =>
                 doubleDown(
                   leftHand,
@@ -141,7 +141,7 @@
             </button>
 
             <button
-              class="button is-info is-outlined"
+              class="button is-info"
               on:click={() => hit(leftHand, leftHandBust, "Left")}
               disabled={leftHandDone || isBusted(leftHand)}
             >
@@ -159,7 +159,7 @@
 
           <div class="column">
             <button
-              class="button is-danger is-outlined"
+              class="button is-danger"
               on:click={stayRight}
               disabled={!(leftHandDone || isBusted(leftHand)) ||
                 rightHandDone ||
@@ -175,7 +175,7 @@
             </button>
 
             <button
-              class="button is-success is-outlined"
+              class="button is-success"
               on:click={() =>
                 doubleDown(
                   rightHand,
@@ -194,7 +194,7 @@
             </button>
 
             <button
-              class="button is-info is-outlined"
+              class="button is-info"
               on:click={() => hit(rightHand, rightHandBust, "Right")}
               disabled={!(
                 leftHandDone ||
@@ -216,7 +216,7 @@
         <div class="columns is-mobile mb-1 mt-1">
           <div class="column">
             <button
-              class="button is-danger is-outlined"
+              class="button is-danger"
               on:click={stay}
               disabled={lockedIn}
             >
@@ -233,7 +233,7 @@
           {#if canSplit && !isSplit}
             <div class="column">
               <button
-                class="button is-warning is-outlined"
+                class="button is-warning"
                 id="splitButton"
                 on:click={split}
                 transition:fly={{ y: -1000, duration: 500 }}
@@ -251,7 +251,7 @@
 
           <div class="column">
             <button
-              class="button is-success is-outlined"
+              class="button is-success"
               on:click={() =>
                 doubleDown(
                   userCards,
@@ -273,7 +273,7 @@
 
           <div class="column">
             <button
-              class="button is-info is-outlined"
+              class="button is-info"
               on:click={() => hit(userCards, bust, "User")}
               disabled={lockedIn}
             >

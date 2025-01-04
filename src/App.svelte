@@ -1,5 +1,5 @@
 <script lang="ts">
-  import "bulma/bulma.sass";
+  import 'bulma/css/bulma.css'
   import BlackJack from "./BlackJack.svelte";
 </script>
 

@@ -11,7 +11,7 @@
     </header>
     <section class="modal-card-body">
 
-      <button class="button is-primary is-outlined" on:click={newGameState}>
+      <button class="button is-primary" on:click={newGameState}>
         <span>Yes</span>
         <span class="icon is-small">
           <i class="fas fa-check" />

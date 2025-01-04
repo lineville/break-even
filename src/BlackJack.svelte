@@ -456,7 +456,9 @@
     betOnInsurance = false;
 
     setTimeout(() => {
-      document.getElementById("confirm-new-game-modal")?.classList.remove("is-active");
+      document
+        .getElementById("confirm-new-game-modal")
+        ?.classList.remove("is-active");
     }, 200);
   };
 
@@ -478,7 +480,10 @@
   let hintColor = "is-info";
   let deck = shuffle(newDeck());
   let dealerCards: Array<Card> = [drawCard(), drawCard()];
-  let userCards: Array<Card> = [drawCard(), drawCard()];
+  let userCards: Array<Card> = [
+    { name: "Two", value: 2, optionalValue: null, suite: "❤️" },
+    { name: "Two", value: 2, optionalValue: null, suite: "♦" },
+  ];
   let leftHand: Array<Card> = [];
   let rightHand: Array<Card> = [];
   let wonInsurance = false;
@@ -534,7 +539,8 @@
         <CardList
           cards={dealerCards.map((c) => cardToImage(c))}
           visible={lockedIn}
-          isSplit={false}
+          {isSplit}
+          isDealer={true}
         />
 
         <div id="divider" />
@@ -584,10 +590,7 @@
               <i class="fa fa-dollar-sign" />
             </span>
           </span>
-          <button
-            class="button is-info is-outlined is-light"
-            on:click={nextHand}
-          >
+          <button class="button is-info" on:click={nextHand}>
             {#if !isTouch}
               <span>Next Hand</span>
             {/if}
@@ -607,7 +610,10 @@
             } subtitle`}
           >
             {hint}
-            <button class={`delete ${isTouch ? 'is-small' : 'is-medium'}`} on:click={toggleHintEnabled}></button>
+            <button
+              class={`delete ${isTouch ? "is-small" : "is-medium"}`}
+              on:click={toggleHintEnabled}
+            ></button>
           </span>
         {/if}
       </div>
@@ -723,7 +729,7 @@
   .pinned-to-bottom {
     position: fixed;
     bottom: 2vh;
-    width: 90%;
+    width: 94%;
     margin: auto;
   }
 </style>

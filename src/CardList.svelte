@@ -5,6 +5,7 @@
   export let cards = [];
   export let visible = true;
   export let isSplit = false;
+  export let isDealer = false;
   const dispatch = createEventDispatcher();
 
   let innerWidth = 0;
@@ -21,7 +22,7 @@
       in:fly={{ y: -2000, duration: 500 }}
       out:fly={{ x: -2000, duration: 500 }}
       on:outroend={() => dispatch("gone", { card: card })}
-      class:inline={!isSplit || !isTouch}
+      class:inline={!isSplit || !isTouch || isDealer}
     >
       <div class="card">
         <div class="card-image">
@@ -55,5 +56,10 @@
 
   .inline {
     display: inline-block;
+  }
+  @media screen and (max-width: 768px) {
+    li:not(.inline):nth-of-type(n + 2) {
+      margin-top: -60px;
+    }
   }
 </style>
