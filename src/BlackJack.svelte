@@ -575,46 +575,49 @@
             userWon ? "is-success" : push ? "is-info" : "is-danger"
           }`}
           transition:fly={{ x: -1000, duration: 500, delay: 200 }}
+          style="display: flex; justify-content: space-evenly; align-items: center;"
         >
           <span
-            class={`tag is-medium ${
-              userWon ? "is-success" : push ? "is-info" : "is-danger"
-            }`}
+            class={`${userWon ? "is-success" : push ? "is-info" : "is-danger"}`}
             id="wonOrLost"
           >
-            <h1>{userWon ? "Win 🎉" : push ? "Push 🙃" : "Loss 😢"}</h1>
+            {userWon ? "Win 🎉" : push ? "Push 🙃" : "Loss 😢"}
           </span>
 
-          <span class="control has-icons-left">
-            <input
-              class="input is-info"
-              type="number"
-              id="bet"
-              name="bet"
-              bind:value={bet}
-              disabled={!lockedIn}
-              min={1}
-              max={balance}
-            />
-            <span class="icon is-small is-left">
-              <i class="fa fa-dollar-sign" />
+          <div>
+            <span class="control has-icons-left">
+              <input
+                class="input is-info"
+                type="number"
+                id="bet"
+                name="bet"
+                bind:value={bet}
+                disabled={!lockedIn}
+                min={1}
+                max={balance}
+              />
+              <span class="icon is-small is-left">
+                <i class="fa fa-dollar-sign" />
+              </span>
             </span>
-          </span>
-          <button class="button is-info" on:click={nextHand}>
-            {#if !isTouch}
-              <span>Next Hand</span>
-            {/if}
-            <span class="icon is-small">
-              <i class="fas fa-angle-double-right" />
-            </span>
-          </button>
+            <button class="button is-info" on:click={nextHand}>
+              {#if !isTouch}
+                <span>Next Hand</span>
+              {/if}
+              <span class="icon is-small">
+                <i class="fas fa-angle-double-right" />
+              </span>
+            </button>
+          </div>
         </div>
       {/if}
 
       <!-- Hint Fly-in -->
       {#if hintEnabled}
         <div class="is-centered">
-          <div style="display: flex; justify-content: center;">
+          <div
+            style="display: flex; justify-content: space-evenly; align-items: center;"
+          >
             <figure class="image is-32x32 mr-4 mb-8">
               <img
                 class="is-rounded is-square"
@@ -629,7 +632,7 @@
             >
               {hint}
               <button
-                class={`delete ${isTouch ? "is-small" : "is-medium"} ml-2`}
+                class={`delete ${isTouch ? "is-small" : "is-medium"} ml-1`}
                 on:click={toggleHintEnabled}
               ></button>
             </span>
@@ -679,13 +682,12 @@
     pointer-events: none;
   }
 
-  h1 {
+  #wonOrLost {
     font-size: x-large;
-    margin-top: 10px;
   }
 
   @media screen and (max-device-width: 768px) {
-    h1 {
+    #wonOrLost {
       font-size: large;
     }
   }
@@ -704,7 +706,7 @@
   }
 
   .fa-dollar-sign {
-    margin-bottom: 25px;
+    margin-top: 2vh;
   }
 
   #bet {
