@@ -441,7 +441,6 @@
     deckCount = 0;
     lockedIn = false;
     isSplit = false;
-    hintEnabled = false;
     userWon = false;
     push = false;
     leftHandDone = false;
@@ -485,7 +484,7 @@
   let rightHand: Array<Card> = [];
   let wonInsurance = false;
   let betOnInsurance = false;
-  let hintEnabled = false;
+  let hintEnabled = true;
 
   // ------------ Derived state ------------
 
@@ -604,11 +603,11 @@
           <span
             class={`tag is-light ${hintColor} ${
               isTouch ? "is-small" : "is-medium"
-            } subtitle`}
+            }`}
           >
             {hint}
             <button
-              class={`delete ${isTouch ? "is-small" : "is-medium"}`}
+              class={`delete ${isTouch ? "is-small" : "is-medium"} ml-2`}
               on:click={toggleHintEnabled}
             ></button>
           </span>
@@ -668,19 +667,16 @@
     }
   }
 
-  .subtitle {
-    margin-bottom: 0.5rem !important;
-    width: 66vw;
-  }
-
   .tag {
     margin-top: 5px;
     margin-right: 1.5rem;
+    margin-bottom: 0.5rem !important;
+    font-size: large;
   }
 
   @media screen and (max-device-width: 768px) {
-    .subtitle {
-      width: 88vw;
+    .tag {
+      font-size: small;
     }
   }
 
