@@ -18,8 +18,8 @@
 <div style="display: inline-block;">
   {#each cards as card, idx (card + idx)}
     <li
-      in:fly={{ x: (idx === 0 ? -1 : 1) * 2000, duration: 500, delay: 300 }}
-      out:fly={{ x: -2000, duration: 800 }}
+      in:fly={{ y: -2000, duration: 500 }}
+      out:fly={{ x: -2000, duration: 500 }}
       on:outroend={() => dispatch("gone", { card: card })}
       class:inline={!isSplit || !isTouch}
     >
@@ -46,6 +46,11 @@
   li {
     list-style-type: none;
     margin: 5px 5px 30px 5px;
+  }
+  @media screen and (max-width: 768px) {
+    li:nth-of-type(n + 4) {
+      margin-top: -80px;
+    }
   }
 
   .inline {

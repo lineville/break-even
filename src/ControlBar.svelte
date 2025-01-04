@@ -105,7 +105,7 @@
   {:else}
     <div transition:fly={{ x: 2000, duration: 500, delay: 200 }}>
       {#if isSplit}
-        <div class="split-controls columns is-mobile mb-2 mt-2">
+        <div class="split-controls columns is-mobile mb-1 mt-1">
           <div class="column">
             <button
               class="button is-danger is-outlined"
@@ -213,7 +213,7 @@
           </div>
         </div>
       {:else}
-        <div class="columns is-mobile mb-2 mt-2">
+        <div class="columns is-mobile mb-1 mt-1">
           <div class="column">
             <button
               class="button is-danger is-outlined"

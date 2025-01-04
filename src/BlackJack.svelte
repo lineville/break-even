@@ -4,8 +4,8 @@
   import CardList from "./CardList.svelte";
   import { decideMove, computeScore, cardCount } from "./BasicStrategy";
   import BalanceBars from "./BalanceBars.svelte";
-  import SettingsModal from "./SettingsModal.svelte";
   import ControlBar from "./ControlBar.svelte";
+  import ConfirmNewGameModal from "./ConfirmNewGameModal.svelte";
 
   const localBucket = window.localStorage;
 
@@ -388,9 +388,6 @@
           );
         }
         break;
-      case "s":
-        toggleShowHandTotal();
-        break;
       case "h":
         hintEnabled = !hintEnabled;
         break;
@@ -412,16 +409,16 @@
     rightHand: Array<Card>
   ): string => {
     if (insuranceOpen) {
-      hintColor = "is-info";
-      return "As a matter of principal, I always suggest you reject insurance.";
+      hintColor = "is-danger";
+      return "I never take insurance, but that's just me 😉";
     }
 
     let decision =
       splitHand && leftHandDone
         ? decideMove(rightHand, dealerUpCard, !isSplit)
         : splitHand
-        ? decideMove(leftHand, dealerUpCard, !isSplit)
-        : decideMove(userCards, dealerUpCard, !isSplit);
+          ? decideMove(leftHand, dealerUpCard, !isSplit)
+          : decideMove(userCards, dealerUpCard, !isSplit);
     switch (decision) {
       case "Stay":
         hintColor = "is-danger";
@@ -457,24 +454,14 @@
     rightHand = [];
     wonInsurance = false;
     betOnInsurance = false;
-  };
 
-  const toggleShowHandTotal = () => {
-    showHandTotal = !showHandTotal;
+    setTimeout(() => {
+      document.getElementById("confirm-new-game-modal")?.classList.remove("is-active");
+    }, 200);
   };
 
   const toggleHintEnabled = () => {
     hintEnabled = !hintEnabled;
-  };
-
-  const cardTotalColorTheme = (score: number): string => {
-    if (score > 21) {
-      return "is-danger";
-    } else if (score >= 16) {
-      return "is-warning";
-    } else {
-      return "is-info";
-    }
   };
 
   // ----------- State -----------
@@ -496,7 +483,6 @@
   let rightHand: Array<Card> = [];
   let wonInsurance = false;
   let betOnInsurance = false;
-  let showHandTotal = false;
   let hintEnabled = false;
 
   // ------------ Derived state ------------
@@ -559,49 +545,13 @@
             <CardList cards={leftHand.map((c) => cardToImage(c))} {isSplit} />
             <span style="display:inline-block; width: 100px;" />
             <CardList cards={rightHand.map((c) => cardToImage(c))} {isSplit} />
-
-            {#if showHandTotal}
-              <div class="is-centered mt-6">
-                <span
-                  class={`tag is-large is-light ${cardTotalColorTheme(
-                    computeScore(leftHand)
-                  )}`}
-                  transition:fly={{ x: 2000, duration: 500 }}
-                >
-                  {computeScore(leftHand)}
-                </span>
-                <span
-                  style="display:inline-block; width: 325px;"
-                  class:narrow-gap={isTouch && isSplit}
-                />
-                <span
-                  class={`tag is-large is-light ${cardTotalColorTheme(
-                    computeScore(rightHand)
-                  )}`}
-                  transition:fly={{ x: 2000, duration: 500 }}
-                >
-                  {computeScore(rightHand)}
-                </span>
-              </div>
-            {/if}
           </ul>
         {:else}
           <CardList cards={userCards.map((c) => cardToImage(c))} {isSplit} />
-          {#if showHandTotal}
-            <div class="is-centered mt-6">
-              <span
-                class={`tag is-large is-light ${cardTotalColorTheme(
-                  computeScore(userCards)
-                )}`}
-                transition:fly={{ x: 2000, duration: 500 }}
-              >
-                {computeScore(userCards)}
-              </span>
-            </div>
-          {/if}
         {/if}
       </div>
-
+    </div>
+    <div class={`${isTouch ? "pinned-to-bottom" : ""}`}>
       <!-- Notification Fly-In -->
       {#if lockedIn}
         <div
@@ -611,7 +561,7 @@
           transition:fly={{ x: -1000, duration: 500, delay: 200 }}
         >
           <span
-            class={`tag is-large ${
+            class={`tag is-medium ${
               userWon ? "is-success" : push ? "is-info" : "is-danger"
             }`}
             id="wonOrLost"
@@ -630,7 +580,6 @@
               min={1}
               max={balance}
             />
-
             <span class="icon is-small is-left">
               <i class="fa fa-dollar-sign" />
             </span>
@@ -648,63 +597,57 @@
           </button>
         </div>
       {/if}
-    </div>
 
-    <!-- Balance Bars -->
-    <BalanceBars {balance} {lockedIn} />
+      <!-- Hint Fly-in -->
+      <div class="is-centered">
+        {#if hintEnabled}
+          <span
+            class={`tag is-light ${hintColor} ${
+              isTouch ? "is-small" : "is-medium"
+            } subtitle`}
+          >
+            {hint}
+            <button class={`delete ${isTouch ? 'is-small' : 'is-medium'}`} on:click={toggleHintEnabled}></button>
+          </span>
+        {/if}
+      </div>
 
-    <!-- Control Bar -->
-    <ControlBar
-      {insuranceOpen}
-      {insuranceBet}
-      {bet}
-      {acceptInsurance}
-      {denyInsurance}
-      {wonInsurance}
-      {betOnInsurance}
-      {isSplit}
-      {leftHand}
-      {rightHand}
-      {stayLeft}
-      {stayRight}
-      {stay}
-      {leftHandDone}
-      {rightHandDone}
-      {userCards}
-      {lockedIn}
-      {canSplit}
-      {isBusted}
-      {hit}
-      {doubleDown}
-      {leftHandBust}
-      {rightHandBust}
-      {bust}
-      {split}
-    />
+      <!-- Balance Bars -->
+      <BalanceBars {balance} {lockedIn} {toggleHintEnabled} />
 
-    <!-- Hint Fly-in -->
-    <div class="is-centered">
-      {#if hintEnabled}
-        <span
-          class={`tag ${hintColor} is-light ${
-            isTouch ? "is-small" : "is-large"
-          } subtitle`}
-          transition:fly={{ x: 2000, duration: 500 }}
-        >
-          {hint}
-        </span>
-      {/if}
+      <!-- Control Bar -->
+      <ControlBar
+        {insuranceOpen}
+        {insuranceBet}
+        {bet}
+        {acceptInsurance}
+        {denyInsurance}
+        {wonInsurance}
+        {betOnInsurance}
+        {isSplit}
+        {leftHand}
+        {rightHand}
+        {stayLeft}
+        {stayRight}
+        {stay}
+        {leftHandDone}
+        {rightHandDone}
+        {userCards}
+        {lockedIn}
+        {canSplit}
+        {isBusted}
+        {hit}
+        {doubleDown}
+        {leftHandBust}
+        {rightHandBust}
+        {bust}
+        {split}
+      />
     </div>
   </div>
 </div>
 
-<SettingsModal
-  {toggleShowHandTotal}
-  {toggleHintEnabled}
-  {showHandTotal}
-  {newGameState}
-  {hintEnabled}
-/>
+<ConfirmNewGameModal {newGameState} />
 
 <style>
   :disabled {
@@ -716,12 +659,26 @@
     margin-top: 10px;
   }
 
+  @media screen and (max-device-width: 768px) {
+    h1 {
+      font-size: large;
+    }
+  }
+
   .subtitle {
     margin-bottom: 0.5rem !important;
+    width: 66vw;
   }
 
   .tag {
     margin-top: 5px;
+    margin-right: 1.5rem;
+  }
+
+  @media screen and (max-device-width: 768px) {
+    .subtitle {
+      width: 88vw;
+    }
   }
 
   .fa-dollar-sign {
@@ -734,20 +691,23 @@
   }
 
   #cards-section {
-    margin-top: 5vh;
-    margin-bottom: 2vh;
+    margin-top: 3vh;
+    margin-bottom: 4vh;
   }
 
   .notification {
     margin-left: 15vw;
     margin-right: 15vw;
-    margin-top: 5vh;
+    margin-top: 10vh;
+    margin-bottom: 2vh;
   }
 
   @media screen and (max-device-width: 768px) {
     .notification {
       margin-left: 2vw;
       margin-right: 2vw;
+      margin-top: -45px;
+      margin-bottom: 2vw;
     }
   }
 
@@ -758,5 +718,12 @@
 
   .narrow-gap {
     width: 125px !important;
+  }
+
+  .pinned-to-bottom {
+    position: fixed;
+    bottom: 2vh;
+    width: 90%;
+    margin: auto;
   }
 </style>
