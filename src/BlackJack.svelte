@@ -598,21 +598,30 @@
       {/if}
 
       <!-- Hint Fly-in -->
-      <div class="is-centered">
-        {#if hintEnabled}
-          <span
-            class={`tag is-light ${hintColor} ${
-              isTouch ? "is-small" : "is-medium"
-            }`}
-          >
-            {hint}
-            <button
-              class={`delete ${isTouch ? "is-small" : "is-medium"} ml-2`}
-              on:click={toggleHintEnabled}
-            ></button>
-          </span>
-        {/if}
-      </div>
+      {#if hintEnabled}
+        <div class="is-centered">
+          <div style="display: flex; justify-content: center;">
+            <figure class="image is-32x32 mr-4 mb-8">
+              <img
+                class="is-rounded is-square"
+                alt="Donald J. Neville"
+                src="./images/donald_neville_headshot.jpeg"
+              />
+            </figure>
+            <span
+              class={`tag is-light mt-4 ${hintColor} ${
+                isTouch ? "is-small" : "is-medium"
+              }`}
+            >
+              {hint}
+              <button
+                class={`delete ${isTouch ? "is-small" : "is-medium"} ml-2`}
+                on:click={toggleHintEnabled}
+              ></button>
+            </span>
+          </div>
+        </div>
+      {/if}
 
       <!-- Balance Bars -->
       <BalanceBars {balance} {lockedIn} {toggleHintEnabled} />
